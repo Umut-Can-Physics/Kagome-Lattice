@@ -2,7 +2,7 @@
 # BOSE-HUBBARD MODEL FOR SQUARE LATTICE #
 #########################################
 
-from tight_binding_approximation import * 
+from tight_binding_approximation import * # Benim pcde kütüphane
 from quspin.operators import hamiltonian 
 from quspin.basis import boson_basis_1d, spinless_fermion_basis_1d
 import numpy as np 
