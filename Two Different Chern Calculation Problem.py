@@ -122,38 +122,12 @@ for iq1, q1 in enumerate(q1_list):
 Chern = Sum.imag/(2*np.pi)
 print(Chern)
 
+from topo_lib import hatsugai
+
 # Eigenvalues and Eigenenergies of Matrix
 q=3
-EEA=np.empty([N1,N2,q],dtype=complex)
-UUA=np.empty([N1,N2,q,q],dtype=complex)
-for iq1, q1 in enumerate(q1_list):
-    for iq2, q2 in enumerate(q2_list):
-        EE, UU = np.linalg.eig(H_k(Q[iq1,iq2,:]))
-        idx = EE.argsort();UU = UU[:,idx]
-        # EEA[iq1,iq2,:],UUA[iq1,iq2,:,:] = np.linalg.eigh(H_k(Q[iq1,iq2,:]))
-        EEA[iq1,iq2,:],UUA[iq1,iq2,:,:] = EE, UU
+EEA, UUA = hatsugai.get_all_eigen(Hq, Q[iq1,iq2,],kky,q)
         
-for bi in range(q): 
-    # Caculate The Link Variables
-    bj = bi # Band index  
-    U1=np.zeros([N1,N2],dtype=complex)
-    U2=np.zeros([N1,N2],dtype=complex)
-    print("---------------")
-    for iq1, q1 in enumerate(q1_list): 
-        for iq2, q2 in enumerate(q2_list): 
-            s1=np.dot(np.conj(UUA[iq1,iq2,:,bi]),UUA[np.mod(iq1+1,N1),iq2,:,bj]) 
-            s2=np.dot(np.conj(UUA[iq1,iq2,:,bj]),UUA[iq1,np.mod(iq2+1,N2),:,bi]) 
-            U1[iq1,iq2]=s1/np.abs(s1)
-            U2[iq1,iq2]=s2/np.abs(s2)
+U1, U2 = hatsugai.get_U1_U2(bi,bj,UUA)
 
-    # Calculate The Field Strength
-    F12=np.zeros([N1,N2],dtype=complex) 
-    for iq1, q1 in enumerate(q1_list):
-        for iq2, q2 in enumerate(q2_list):
-            F12[iq1,iq2] = U1[iq1,iq2]*U2[np.mod(iq1+1,N1),iq2]/(U1[iq1,np.mod(iq2+1,N2)]*U2[iq1,iq2])
-            F12[iq1,iq2] = np.log(F12[iq1,iq2])
-            
-    # Chern Number of Band Index
-    print("Band Index:",bi)
-    print(F12.sum()/(2j*np.pi))
-    print("-----------")
+F12 = hatsugai.get_F12(U1,U2)
