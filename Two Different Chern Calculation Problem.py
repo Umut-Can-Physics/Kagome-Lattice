@@ -27,7 +27,7 @@ t1=0;L1=0;t2=-1;L2=-1 # Complex NNN [3,0,-3]
 # Following results of parameters consistent with Review article
 # t1=-1;L1=1;t2=0;L2=0 # Complex NN (Well-Defined Berry Curvature) [-1,0,1]
 # t1=-1;L1=0.28;t2=0.3;L2=0.2 # Complex NNN (Well-Defined Berry Curvature) [-1,0,1]
-def H_k(k_vec):
+def H_k(k_vec,**kwargs):
     kx = k_vec[0]
     ky = k_vec[1]
     k1=np.dot([kx,ky],a1_b);k2=np.dot([kx,ky],a2_b);k3=k2-k1 # Convention
@@ -122,12 +122,15 @@ for iq1, q1 in enumerate(q1_list):
 Chern = Sum.imag/(2*np.pi)
 print(Chern)
 
-from topo_lib import hatsugai
+from topo_lib import hatsugai, hamiltonians
 
 # Eigenvalues and Eigenenergies of Matrix
-q=3
-EEA, UUA = hatsugai.get_all_eigen(Hq, Q[iq1,iq2,],kky,q)
-        
-U1, U2 = hatsugai.get_U1_U2(bi,bj,UUA)
+EEA, UUA = hatsugai.get_all_eigen(H_k, Q[:,0,0],Q[0,:,1],3,q=3)
 
-F12 = hatsugai.get_F12(U1,U2)
+for bi in range(3):
+    bj=bi
+
+    U1, U2 = hatsugai.get_U1_U2(bi,bj,UUA)
+
+    F12 = hatsugai.get_F12(U1,U2)
+    print(np.sum(F12.imag)/(2*np.pi))
