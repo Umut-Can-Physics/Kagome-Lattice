@@ -1,20 +1,21 @@
 import numpy as np
 
 #Lattice size
-L_x=L_y=5
+L_x=4
+L_y=5
 print("lx=",L_x,", ly=",L_y)
 
 #Create 2-D Lattice. Each numbers represents lattice sites
 lattice = np.arange(L_x*L_y).reshape(L_x,L_y)
 
 #Site coordinates on lattice in order, according to coordinate system
-x_co = np.arange(L_x)
-y_co = np.arange(L_y)
-arr = np.empty(shape=[0,2])
-for j in range(len(x_co)):
-    for i in range(len(y_co)):
-        arr = np.append(arr, [[x_co[i],x_co[j]]], axis=0)
-xy = arr
+x_co = np.arange(L_y)
+y_co = np.arange(L_x)
+arr = []
+for j in range(len(y_co)):
+    for i in range(len(x_co)):
+        arr = np.append(arr, [[x_co[i],x_co[j]]])
+xy = arr.reshape((int(arr.size/2),2))
 
 #Find nearest-neighbors for hard-wall B.C.
 def HardBC(arr):
