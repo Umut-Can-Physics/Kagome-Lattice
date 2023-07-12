@@ -1,7 +1,7 @@
 import numpy as np
 
 #Lattice size
-L_x=4
+L_x=5
 L_y=5
 print("lx=",L_x,", ly=",L_y)
 
@@ -61,9 +61,6 @@ HardBCLat = HardBC(lattice)
 PerBCLat = PerBC(lattice)
 
 # import matplotlib.pyplot as plt
-
-# #YAPILACAK: Site numaraları gösterilmeli!
-# #YAPILACAK: Görselleştirmede L_x, L_y yerleri farklı!
 
 # #Lattice visualization 
 # # fig1, ax1 = plt.subplots()
