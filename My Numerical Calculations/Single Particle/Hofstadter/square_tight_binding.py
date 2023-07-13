@@ -1,64 +1,93 @@
 import numpy as np
 
-#Lattice size
-L_x=5
-L_y=5
-print("lx=",L_x,", ly=",L_y)
-
-#Create 2-D Lattice. Each numbers represents lattice sites
-lattice = np.arange(L_x*L_y).reshape(L_x,L_y)
-
-#Site coordinates on lattice in order, according to coordinate system
-x_co = np.arange(L_y)
-y_co = np.arange(L_x)
-arr = []
-for j in range(len(y_co)):
-    for i in range(len(x_co)):
-        arr = np.append(arr, [[x_co[i],x_co[j]]])
-xy = arr.reshape((int(arr.size/2),2))
+def lattice_2d(L_x,L_y):
+    #Create 2-D Lattice. Each numbers represents lattice sites
+    lattice = np.arange(L_x*L_y).reshape(L_x,L_y)
+    
+    #Site coordinates on lattice in order, according to coordinate system
+    x_co = np.arange(L_y)
+    y_co = np.arange(L_x)
+    arr = []
+    for j in range(len(y_co)):
+        for i in range(len(x_co)):
+            arr = np.append(arr, [[x_co[i],x_co[j]]])
+    xy = arr.reshape((int(arr.size/2),2))
+    return lattice, arr, xy
 
 #Find nearest-neighbors for hard-wall B.C.
-def HardBC(arr):
+def HardBC(L_x, L_y):
+    lattice, arr, xy = lattice_2d(L_x,L_y)
     neighbors = {}
-    for i in range(len(arr)):
-        for j, value in enumerate(arr[i]):
-            if i == 0 or i == len(arr) - 1 or j == 0 or j == len(arr[i]) - 1:
+    for i in range(len(lattice)):
+        for j, value in enumerate(lattice[i]):
+            if i == 0 or i == len(lattice) - 1 or j == 0 or j == len(lattice[i]) - 1:
                 new_neighbors = []
                 if i != 0:
-                    new_neighbors.append(arr[i - 1][j])  
+                    new_neighbors.append(lattice[i - 1][j])  
                 if j != len(arr[i]) - 1:
-                    new_neighbors.append(arr[i][j + 1]) 
+                    new_neighbors.append(lattice[i][j + 1]) 
                 if i != len(arr) - 1:
-                    new_neighbors.append(arr[i + 1][j])  
+                    new_neighbors.append(lattice[i + 1][j])  
                 if j != 0:
-                    new_neighbors.append(arr[i][j - 1])
+                    new_neighbors.append(lattice[i][j - 1])
             else:
                 new_neighbors = [
-                    arr[i - 1][j],  
-                    arr[i][j + 1],  
-                    arr[i + 1][j],  
-                    arr[i][j - 1]   
+                    lattice[i - 1][j],  
+                    lattice[i][j + 1],  
+                    lattice[i + 1][j],  
+                    lattice[i][j - 1]   
                 ]
             neighbors[value] = new_neighbors
     return neighbors
 
 #Find nearest-neighbors for periodic B.C.
-def PerBC(arr):
+def PerBC(L_x, L_y):
+    lattice, arr, xy = lattice_2d(L_x,L_y)
     neighbors = {}
-    for i in range(len(arr)):
-        for j, value in enumerate(arr[i]):
+    for i in range(len(lattice)):
+        for j, value in enumerate(lattice[i]):
             new_neighbors = [
-                arr[(i - 1)%L_x][j%L_y],  
-                arr[i%L_x][(j + 1)%L_y],  
-                arr[(i + 1)%L_x][j%L_y],  
-                arr[i%L_x][(j - 1)%L_y]   
+                lattice[(i - 1)%L_x][j%L_y],  
+                lattice[i%L_x][(j + 1)%L_y],  
+                lattice[(i + 1)%L_x][j%L_y],  
+                lattice[i%L_x][(j - 1)%L_y]   
             ]
             neighbors[value] = new_neighbors
     return neighbors
+    
+#Real Space Hamiltonian with Twisted Angle Phases
+def HMat_Theta(L_x, L_y, p, q, theta_x, theta_y):
+    lattice, arr, xy = lattice_2d(L_x,L_y)
+    PerBCLat = PerBC(L_x, L_y)
+    alpha = p/q
+    H = np.zeros((L_x*L_y, L_x*L_y), dtype=complex)
+    for m in range(L_x*L_y):
+        for n in range(L_x*L_y):
+            #NN
+            if m in PerBCLat[n]:
+                #X ekseninde sınırdan sınıra atlamalar:
+                if np.absolute(xy[m][0]-xy[n][0])==L_x-1:
+                    if xy[m][0] > xy[n][0]:
+                        H[m][n] = -np.exp(-1j*2*np.pi*(alpha)*xy[m][1])*np.exp(-1j*theta_x)
+                    elif xy[m][0] < xy[n][0]:
+                        H[m][n] = -np.exp(1j*2*np.pi*(alpha)*xy[m][1])*np.exp(1j*theta_x)
 
-#Show nearest-neighbors
-HardBCLat = HardBC(lattice)
-PerBCLat = PerBC(lattice)
+                #Y ekseninde sınırdan sınıra atlamalar
+                elif np.absolute(xy[m][1]-xy[n][1])==L_y-1:
+                    if xy[m][1] > xy[n][1]:
+                        H[m][n] = -np.exp(1j*theta_y)
+                    elif xy[m][1] < xy[n][1]:
+                        H[m][n] = -np.exp(-1j*theta_y)
+                        
+                #Lattice içi atlamalar
+                else:
+                    if xy[m][0] > xy[n][0]:
+                        H[m][n] = -np.exp(1j*2*np.pi*alpha*xy[m][1])
+                    elif xy[m][0] < xy[n][0]:
+                        H[m][n] = -np.exp(-1j*2*np.pi*alpha*xy[m][1])
+                    else:
+                        H[m][n] = -np.exp(0)
+    return H
 
 # import matplotlib.pyplot as plt
 
