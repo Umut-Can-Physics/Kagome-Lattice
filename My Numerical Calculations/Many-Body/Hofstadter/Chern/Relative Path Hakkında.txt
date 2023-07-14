@@ -1,0 +1,1 @@
+Bu dosyadaki Chern hesaplarına relative path atanmalı!
