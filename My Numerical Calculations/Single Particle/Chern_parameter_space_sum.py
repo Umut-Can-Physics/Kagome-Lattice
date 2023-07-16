@@ -14,7 +14,7 @@ def calc_states_twist_hofstadter(L_x, L_y, Nt1, Nt2, p, q, theta_x, theta_y, HMa
     for it1 in range(Nt1):
         for it2 in range(Nt2):
             EEA[it1,it2,:],UUA[it1,it2,:,:] = np.linalg.eigh(HMat_Theta(L_x, L_y, p, q, theta_x[it1], theta_y[it2]))
-    return UUA
+    return EEA, UUA
 
 def calc_states_twist_kagome(l1, l2, t1,L1,t2,L2,Nt1, Nt2, theta_1, theta_2, H):
     N = l1*l2*3
