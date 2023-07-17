@@ -1,2 +1,4 @@
-# Kagome-Lattice
-This repository includes tight-binding algorithm for 2D-Kagome Lattice. Possible Changes are: Kagome Many-Body Chern Number 
+To do:
+1) Braiding
+2) Chern Implementation
+3) Organize the not updated files
