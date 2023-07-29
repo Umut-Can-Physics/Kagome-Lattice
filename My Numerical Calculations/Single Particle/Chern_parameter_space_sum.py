@@ -17,7 +17,7 @@ def calc_states_twist_hofstadter(L_x, L_y, Nt1, Nt2, p, q, theta_x, theta_y, HMa
     return EEA, UUA
 
 def calc_states_twist_kapit_mueller(L_x, L_y, Nt1, Nt2, p, q, Tx, Ty, Kapit_Mueller_Hamiltonian):
-    EEA=np.empty([Nt1,Nt2,L_x*L_y])
+    EEA=np.empty([Nt1, Nt2, L_x*L_y])
     UUA=np.empty([Nt1,Nt2,L_x*L_y,L_x*L_y],dtype=complex)
     for it1 in range(Nt1):
         for it2 in range(Nt2):
