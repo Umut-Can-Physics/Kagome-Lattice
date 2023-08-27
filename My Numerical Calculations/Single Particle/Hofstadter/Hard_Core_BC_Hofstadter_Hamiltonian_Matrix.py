@@ -3,7 +3,9 @@ sys.path.insert(0, 'C:/Users/Can/Dropbox/PC (2)/Desktop/My Numerical Calculation
 from square_tight_binding import *
 
 # hard b.c. hamiltonian matrix
-def HardHMat(alfa):
+def HardHMat(alfa,L_x,L_y):
+    lattice, arr, xy = lattice_2d(L_x,L_y)
+    HardBCLat = HardBC(L_x, L_y)
     H = np.zeros((L_x*L_y, L_x*L_y), dtype=complex)
     for m in range(L_x*L_y):
         for n in range(L_x*L_y):

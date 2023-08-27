@@ -24,9 +24,9 @@ def HardBC(L_x, L_y):
                 new_neighbors = []
                 if i != 0:
                     new_neighbors.append(lattice[i - 1][j])  
-                if j != len(arr[i]) - 1:
+                if j != L_y - 1:
                     new_neighbors.append(lattice[i][j + 1]) 
-                if i != len(arr) - 1:
+                if i != L_x - 1:
                     new_neighbors.append(lattice[i + 1][j])  
                 if j != 0:
                     new_neighbors.append(lattice[i][j - 1])
