@@ -1,0 +1,3 @@
+I plan to optimize all of my code that related braiding calculations.
+This would be nice, if I success.
+I'l like to use Multithreading techniques.
