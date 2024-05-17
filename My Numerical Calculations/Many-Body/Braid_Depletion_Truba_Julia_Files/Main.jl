@@ -16,11 +16,11 @@ include("Hofstadter_Many_Body_Utils.jl")
 
 # 2 QH
 
-Nx=10
-Ny=8
+Nx=12
+Ny=12
 p=1
-q=10
-par_num = 3
+q=12
+par_num = 5
 U = 2
 V_Strength = 4
 
@@ -32,7 +32,7 @@ PN = [i for i in 1:par_num]
 plot_square_lattice(Nx, Ny)
 
 x = 0.1
-ref_site = 35
+ref_site = 66
 V0 = [V_Strength,x*V_Strength,x*V_Strength,x*V_Strength,x*V_Strength]
 Imp_Site = [ref_site,ref_site-1,ref_site+1,ref_site+Nx,ref_site-Nx]
 N_Pin = 2
@@ -56,7 +56,7 @@ dens_2 = avg_density'[1:end-1,:]
 
 # 1 QH
 
-Ny=7
+Ny=Ny-1
 N=Nx*Ny
 NPhi = Int( Nx * Ny * (p/q) )
 cut_off = NPhi
