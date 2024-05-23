@@ -49,8 +49,7 @@ function ground_state_deg(Nx, Ny, p, q, N_Pin, PN)
 end
 
 function Avg_Density(Nx, Ny, N, p, q, N_Pin, PN, number_mb_list_operators, basis_cut_mb, r_hubbard_states)
-    #Degeneracy, pn, NPhi0, N_d = ground_state_deg(Nx, Ny, p, q, N_Pin, PN)
-    Degeneracy = 405 #!!
+    Degeneracy, pn, NPhi0, N_d = ground_state_deg(Nx, Ny, p, q, N_Pin, PN)
     av_density = Get_Avg_Density_List(Nx, Ny, Degeneracy, N, number_mb_list_operators, basis_cut_mb, r_hubbard_states)
     return Degeneracy, av_density
 end
