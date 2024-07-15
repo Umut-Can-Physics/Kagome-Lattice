@@ -16,11 +16,11 @@ include("Hofstadter_Many_Body_Utils.jl")
 
 # 2 QH
 
-Nx=12
-Ny=12
+Nx=23
+Ny=23
 p=1
-q=12
-par_num = 5
+q=23
+par_num = 7
 U = 2
 V_Strength = 4
 
@@ -31,8 +31,8 @@ PN = [i for i in 1:par_num]
 
 plot_square_lattice(Nx, Ny)
 
-x = 0.1
-ref_site = 66
+x = 1
+ref_site = 265
 V0 = [V_Strength,x*V_Strength,x*V_Strength,x*V_Strength,x*V_Strength]
 Imp_Site = [ref_site,ref_site-1,ref_site+1,ref_site+Nx,ref_site-Nx]
 N_Pin = 2
