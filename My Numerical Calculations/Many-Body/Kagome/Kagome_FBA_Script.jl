@@ -1,1 +1,0 @@
-function get_sp
