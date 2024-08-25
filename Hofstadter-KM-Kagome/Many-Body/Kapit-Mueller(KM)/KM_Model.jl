@@ -1,4 +1,5 @@
 function KM(Nx, Ny, t, p, q)
+    N_Site = Nx*Ny
     coordinates = vcat( ( [y x] for x in 0:Nx-1 for y in 0:Ny-1 ) ... )
     alpha = p/q
     H = spzeros(Complex{Float64}, N_Site, N_Site)

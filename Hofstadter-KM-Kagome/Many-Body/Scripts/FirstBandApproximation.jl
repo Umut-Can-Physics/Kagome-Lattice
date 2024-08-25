@@ -94,6 +94,16 @@ function get_num_sub_list(N, P, Pt)
     return num_sub_list
 end
 
+function get_num_list_fixed_prtcl(N)
+    sp_basis = NLevelBasis(N)
+    num_list = []
+    for m in 1:N
+        num_op = transition(sp_basis, m, m)
+        push!(num_list, num_op)
+    end
+    return num_list
+end
+
 #   <font size="5"> \hat{O}=\sum_{ij} a^\dagger_i a_j <u_i|\hat{o}|u_j> </font>
 
 """
@@ -119,10 +129,14 @@ function get_mb_op(mb_basis, sp_op)
     return mb_op
 end
 
+function get_mb_op2(mb_basis, sp_op)
+    return manybodyoperator(mb_basis,sp_op)
+end
+
 #   <font size="5"> \hat{V}=\sum_{ijkl}a^\dagger_ia^\dagger_ja_ka_l
 #   <u_i|<u_j|\hat{v}|u_k>|u_l> </font>
 
-function create_tensor(basis, dimension, size)
+#= function create_tensor(basis, dimension, size)
     Createe = zeros(ComplexF64, dimension, dimension, size)
     for i in 1:size
         Createe[:,:,i] = dense(create(basis, i)).data
@@ -136,7 +150,7 @@ function destroy_tensor(basis, dimension, size)
         Destroyy[:,:,i] = dense(destroy(basis, i)).data
     end
     return Destroyy
-end
+end =#
 
 function Hubbard_Interaction_op(P, Pt, cut_mb_basis, cut_off, U)
     
@@ -161,6 +175,47 @@ function Hubbard_Interaction_op(P, Pt, cut_mb_basis, cut_off, U)
     end
     
     return Vint_mb_cut
+end
+
+function Hubbard_Interaction_Full(N, sp_basis, mb_basis, U)
+    basis2 = sp_basis ⊗ sp_basis
+    
+    Vint2 = SparseOperator(basis2)
+
+    for n in 1:N
+        Vint2 += U/2*transition(sp_basis,n,n)⊗transition(sp_basis,n,n)
+    end
+
+    Vint_mb = manybodyoperator(mb_basis, Vint2)
+
+    return Vint_mb
+end
+
+function Hubbard_Interaction_fixed_prtcl(sp_basis)
+
+    basis2 = sp_basis ⊗ sp_basis
+    
+    Vint2 = SparseOperator(basis2)
+
+    for n in 1:N
+        Vint2 += U/2*transition(sp_basis,n,n)⊗transition(sp_basis,n,n)
+    end
+
+    #Vint_mb = manybodyoperator(mb_basis, Vint2)
+
+    return Vint2
+end
+
+function Hubbard_Int_fixed_prtc_sub(Vint_mb, P, Pt, basis_sub, basis_mb_sub)
+    V_int = Vint_mb.data
+    P2 = (P⊗P).data # two body projection operator
+    P2t = (Pt⊗Pt).data
+    @einsum V2_sub[i2,j2] :=  P2[i2,k2] * V_int[k2,l2] * P2t[l2,j2]
+    basis_sub_2 = basis_sub ⊗ basis_sub # two body sub basis
+    V2_sub_op = Operator(basis_sub_2, V2_sub)
+    V2_Sub_Op = manybodyoperator(basis_mb_sub, V2_sub_op)
+
+    return V2_Sub_Op
 end
 
 function get_num_mb_op(N, cut_sp_basis, num_sub_list, cut_mb_basis)

@@ -7,13 +7,14 @@ function plot_square_lattice(N, Nx, Ny)
     return co, display(p)
 end
 
-function H_sp(N, Nx, Ny, p, q)
+#! I DON'T USE IT !#
+#= function H_sp(N, Nx, Ny, p, q)
     sp_basis = NLevelBasis(N)
     periodicity = 0 #periodic (select 1 for hard-wall conditions)
     sp_matrix = Hofstadter_SP(Nx, Ny, p/q, periodicity)
     H1 = get_sp_op(N, sp_matrix)
     return H1, sp_basis
-end
+end =#
 
 function Sp_Op(N, matrix)
     H = get_sp_op(N, matrix)
@@ -27,21 +28,44 @@ function H_sub(N, H1, cut_off)
     return H1_sub, basis_sub, P, Pt
 end
 
-function H_Kin_MB(basis_sub, PN, H1_sub)
-    states_mb = bosonstates(basis_sub, PN) 
-    basis_mb = ManyBodyBasis(basis_sub, states_mb)
-    H1_MB = get_mb_op(basis_mb, H1_sub)
-    return H1_MB
+function H_Kin_MB(basis_sub, PN, H1_sub, HardCore)
+    if HardCore==false
+        states_mb = bosonstates(basis_sub, PN) 
+        basis_mb = ManyBodyBasis(basis_sub, states_mb)
+        H1_MB = get_mb_op(basis_mb, H1_sub)
+    elseif HardCore==true
+        states_mb = fermionstates(basis_sub, PN) 
+        basis_mb = ManyBodyBasis(basis_sub, states_mb)
+        H1_MB = get_mb_op(basis_mb, H1_sub)
+    end
+    return H1_MB, basis_mb
 end
 
-function get_Bosonic_MB_Basis(N, PN)
-    sp_basis = NLevelBasis(N)
-    N_States = bosonstates(sp_basis, PN)
-    N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
+function get_Bosonic_MB_Basis(N, PN, HardCore)
+    if HardCore==false
+        sp_basis = NLevelBasis(N)
+        N_States = bosonstates(sp_basis, PN)
+        N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
+    elseif HardCore==true
+        sp_basis = NLevelBasis(N)
+        N_States = fermionstates(sp_basis, PN)
+        N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
+    end
     return N_Basis_MB, sp_basis
 end
 
-function H_Total_Sub(PN, P, Pt, basis_cut_mb, cut_off, U, H1_MB)
+function boson_mb_basis(Sub_Basis, pn, HardCore)
+    if HardCore==false
+        sub_boson_states = bosonstates(Sub_Basis, pn)
+        sub_mb_basis = ManyBodyBasis(Sub_Basis, sub_boson_states)
+    elseif HardCore==true
+        sub_boson_states = fermionstates(Sub_Basis, pn)
+        sub_mb_basis = ManyBodyBasis(Sub_Basis, sub_boson_states)
+    end
+    return sub_mb_basis
+end
+
+function H_Total_Sub(P, Pt, basis_cut_mb, cut_off, U, H1_MB)
     H_Kin = SparseOperator(basis_cut_mb)
     H_Kin.data = H1_MB.data
     H_Int = Hubbard_Interaction_op(P, Pt, basis_cut_mb, cut_off, U)
