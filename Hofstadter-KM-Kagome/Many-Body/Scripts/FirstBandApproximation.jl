@@ -93,7 +93,7 @@ function get_num_sub_list(N, P, Pt)
     return num_sub_list
 end
 
-function get_num_list_fixed_prtcl(N)
+function get_num_list(N)
     sp_basis = NLevelBasis(N)
     num_list = []
     for m in 1:N

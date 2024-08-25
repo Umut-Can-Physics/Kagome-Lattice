@@ -43,7 +43,7 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
     Impurity_Data = Impurity(V0, Imp_Site)
     Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data)
     E0, ψ = eigenstates(Impurity_H, Degeneracy)
-    E0, ψ = fixed_pn_sector(pn, E0, ψ, basis_cut_mb) 
+    #E0, ψ = fixed_pn_sector(pn, E0, ψ, basis_cut_mb) 
     
     ψ = hcat([ψ[i].data for i in 1:Degeneracy] ...) # matrix form
     # ψ = hcat([ψ[i].data for i in 1:length(E0)] ...)
@@ -64,7 +64,7 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
     @showprogress for H in Impurity_H_List
         
         ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
-        ϵ, ψ_tilde = fixed_pn_sector(pn, ϵ, ψ_tilde, basis_cut_mb) 
+        #ϵ, ψ_tilde = fixed_pn_sector(pn, ϵ, ψ_tilde, basis_cut_mb) 
         push!(E_list, ϵ)
         
         ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
