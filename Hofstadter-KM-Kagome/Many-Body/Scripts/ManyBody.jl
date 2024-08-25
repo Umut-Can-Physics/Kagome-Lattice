@@ -16,42 +16,27 @@ end
     return H1, sp_basis
 end =#
 
-function Sp_Op(N, matrix)
-    H = get_sp_op(N, matrix)
+function Sp_Op(sp_basis, matrix)
+    H = get_sp_op(sp_basis, matrix)
     return dense((H'+H)/2)
 end
 
-function H_sub(N, H1, cut_off)
+function H_sub(sp_basis, H1, cut_off)
     sub_states = get_sub_states(H1, cut_off)
-    basis_sub, P, Pt = get_projector_op(N, sub_states)
+    basis_sub, P, Pt = get_projector_op(sp_basis, sub_states)
     H1_sub = get_subspace_op(H1, P, Pt)
     return H1_sub, basis_sub, P, Pt
 end
 
-function H_Kin_MB(basis_sub, PN, H1_sub, HardCore)
+function get_Bosonic_MB_Basis(sp_basis, PN, HardCore)
     if HardCore==false
-        states_mb = bosonstates(basis_sub, PN) 
-        basis_mb = ManyBodyBasis(basis_sub, states_mb)
-        H1_MB = get_mb_op(basis_mb, H1_sub)
-    elseif HardCore==true
-        states_mb = fermionstates(basis_sub, PN) 
-        basis_mb = ManyBodyBasis(basis_sub, states_mb)
-        H1_MB = get_mb_op(basis_mb, H1_sub)
-    end
-    return H1_MB, basis_mb
-end
-
-function get_Bosonic_MB_Basis(N, PN, HardCore)
-    if HardCore==false
-        sp_basis = NLevelBasis(N)
         N_States = bosonstates(sp_basis, PN)
         N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
     elseif HardCore==true
-        sp_basis = NLevelBasis(N)
         N_States = fermionstates(sp_basis, PN)
         N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
     end
-    return N_Basis_MB, sp_basis
+    return N_Basis_MB
 end
 
 function boson_mb_basis(Sub_Basis, pn, HardCore)

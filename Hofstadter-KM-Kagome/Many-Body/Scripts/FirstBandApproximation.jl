@@ -9,9 +9,9 @@ Convert Sp Matrix to Sp Operator
 - `N::Integer`: The total site number.
 - `sp_matrix::Matrix`: Hopping phases matrix from any model.
 """
-function get_sp_op(N, sp_matrix)
+function get_sp_op(sp_basis, sp_matrix)
 
-    sp_basis = NLevelBasis(N)
+    #sp_basis = NLevelBasis(N)
     
     H = SparseOperator(sp_basis)
 
@@ -48,9 +48,8 @@ Compute sub-space basis, projection and comlex conjugate of projection operator.
 - `states::get_sub_states`: Eigen-states of the sub-space.
 - `basis::NLevelBasis`: Single-particle basis.
 """
-function get_projector_op(N, states)
+function get_projector_op(sp_basis, states)
 
-    sp_basis = NLevelBasis(N)
     sub_basis = SubspaceBasis(sp_basis,states)
     P = projector(sub_basis, sp_basis)
     Pt = dagger(P)
@@ -129,8 +128,9 @@ function get_mb_op(mb_basis, sp_op)
     return mb_op
 end
 
+#! get_mb_op and get_mb_op2 have to be the same return value !#
 function get_mb_op2(mb_basis, sp_op)
-    return manybodyoperator(mb_basis,sp_op)
+    return manybodyoperator(mb_basis, sp_op)
 end
 
 #   <font size="5"> \hat{V}=\sum_{ijkl}a^\dagger_ia^\dagger_ja_ka_l
