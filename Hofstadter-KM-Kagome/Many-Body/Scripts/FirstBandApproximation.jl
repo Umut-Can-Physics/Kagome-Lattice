@@ -128,7 +128,7 @@ function get_mb_op(mb_basis, sp_op)
     return mb_op
 end
 
-#! get_mb_op and get_mb_op2 have to be the same return value !#
+#! get_mb_op and get_mb_op2 have to be the same return !#
 function get_mb_op2(mb_basis, sp_op)
     return manybodyoperator(mb_basis, sp_op)
 end
@@ -275,7 +275,7 @@ end =#
     return Avg_Density / Degeneracy
 end =#
 
-function Interp(data, factor)
+#= function Interp(data, factor)
     IC = CubicSplineInterpolation((axes(data,1), axes(data,2)), data)
     finerx = LinRange(firstindex(data,1), lastindex(data,1), size(data,1) * factor)
     finery = LinRange(firstindex(data,2), lastindex(data,2), size(data,2) * factor)
@@ -312,4 +312,4 @@ function exp_list1(Xx, Yy)
     co_list = hcat(x_co, y_co)
     site_indx = intersect(findall(x->x==Xx, co_list[:,1]), findall(x->x==Yy, co_list[:,2]))
     return real(avg_density)[site_indx] 
-end
+end =#

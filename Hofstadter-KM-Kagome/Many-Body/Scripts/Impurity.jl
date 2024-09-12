@@ -56,7 +56,8 @@ end
 
 function plot_density(Nx, Ny, Degeneracy, N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, factor)
     avg_density = Get_Avg_Density(Nx, Ny, Degeneracy, N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States)
-    return Plots.heatmap(Interp(avg_density', factor), aspect_ratio=:equal)
+    #return Plots.heatmap(Interp(avg_density', factor), aspect_ratio=:equal)
+    return Plots.heatmap(avg_density', aspect_ratio=:equal)
 end
 
 function movie(Nx, Ny, Degeneracy, N, Sub_Number_MB_Operator_List, basis_cut_mb, Eigen_List, factor)

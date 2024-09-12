@@ -19,8 +19,7 @@ function KM(Nx, Ny, t, p, q)
                         G = (-1) ^ ( real(z) + imag(z) + real(z) * imag(z) )
                         beta = (pi/2) * ( (z_j * conj(z) ) - (conj(z_j) * z) )*alpha
                         W = t * G * exp( -pi/2 * (1-alpha) * (abs(z)^2) )
-                        # J = W * exp(beta) * exp( pi/2 * ( (z_j * conj(R) ) - (conj(z_j) * R) ) * alpha)
-                        J = W * exp( pi/2 * ( (z_j * conj(z) ) - (conj(z_j) * z) ) * alpha)
+                        J = W * exp(beta) * exp( pi/2 * ( (z_j * conj(R) ) - (conj(z_j) * R) ) * alpha)
                         H[j,k] += J
                     end
                 end

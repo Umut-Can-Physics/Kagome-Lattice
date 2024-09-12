@@ -1,3 +1,30 @@
+function braiding_path(moving_point, Nx, Ny, co)
+    First_Path = Int64[]
+    mod_list = [mod(moving_point,Nx),mod(moving_point,Ny)]
+    bottom_site_in_the_Ny_direction = mod_list[mod_list .> 0][1]
+    last_site_in_the_Ny_direction = (bottom_site_in_the_Ny_direction+(Nx*(Ny-1)))
+    site_number_from_upward = (last_site_in_the_Ny_direction-moving_point)/Nx
+    site_number_from_downward = (moving_point-bottom_site_in_the_Ny_direction)/Nx
+    for i in 0:site_number_from_upward
+        step_site = moving_point+i*Nx
+        push!(First_Path, step_site)
+        if step_site == last_site_in_the_Ny_direction
+            for j in 0:site_number_from_downward
+                push!(First_Path, bottom_site_in_the_Ny_direction+j*Nx)
+            end
+        end
+    end
+    x_co_mov_point = co[:,2][moving_point]
+    A = filter!(ϵ->ϵ ∉ moving_point , findall(x->x==x_co_mov_point,co[:,2])) # 13, 14, 16, 17, 18
+    AA = findall(x->x==x_co_mov_point,co[:,2]) # 13, 14, 15, 16, 17, 18
+    B = findall(x->x==moving_point, AA)[1] # 3
+    Second_Path = vcat(reverse(A[1:B-1]), reverse(A[B:end]))
+    Third_Path = reverse(First_Path)
+    Fourth_Path = push!(reverse(Second_Path), moving_point)
+    rec_path_braiding = vcat(First_Path,Second_Path,Third_Path,Fourth_Path)
+    return rec_path_braiding
+end
+ 
 function path_line(point,len,direction)
     path = Array{Int64}(undef, 0)
     for i in 1:len+1
@@ -18,6 +45,29 @@ function rectangular_path(start_point,lens,dirs)
     return vcat(paths)
 end
 
+function double_exchange_path(lens, start_point_1, start_point_2)
+    dirs_1 = [1,-Ny, -1, Ny]
+    rec_path_1 = rectangular_path(start_point_1,lens,dirs_1)
+    dirs_2 = [-1, Ny, 1, -Ny]
+    rec_path_2 = rectangular_path(start_point_2,lens,dirs_2)
+    return rec_path_1, rec_path_2
+end
+
+function exchange_path(lens, start_point_1, start_point_2)
+    dirs_1 = [1,-Ny]
+    rec_path_1 = rectangular_path(start_point_1,lens,dirs_1)
+    dirs_2 = [-1, Ny]
+    rec_path_2 = rectangular_path(start_point_2,lens,dirs_2)
+    return rec_path_1, rec_path_2
+end
+
+function braiding_path(moving_point, fixed_point, Nx, Ny, co)
+    braid_path = braiding_path(moving_point, Nx, Ny, co)
+    path_1 = braid_path
+    path_2 = repeat([fixed_point], length(braid_path))
+    return path_1, path_2
+end
+
 function plot_paths(co, First_Path, Second_Path)
     M = Matrix{Int64}(undef,length(First_Path),2)
     N = Matrix{Int64}(undef,length(Second_Path),2)
@@ -33,7 +83,77 @@ function plot_paths(co, First_Path, Second_Path)
     return display(p3)
 end
 
+function th_AB_phase(pn, p, q, N_Pin, N_mov, number_of_plaq)
+    NPhi = Int( Nx * Ny * (p/q) )
+    charge = pn/(NPhi-N_Pin)
+    # exch path: N_mov = 1
+    # double exch path: N_mov = 2
+    θ_AB = N_mov * (p/q) * charge * number_of_plaq
+    ex = exp(2*im*pi*θ_AB)
+    return θ_AB, ex, charge
+end
+
 function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
+
+    # INITIAL POSITION 
+    V1 = Impurity_Data.V0[1]
+    V2 = Impurity_Data.V0[2]
+    Imp_initial = [rec_path_1[1], rec_path_1[2], rec_path_2[1], rec_path_2[2]]
+    V_initial = [V1, 0, V2, 0] 
+    Impurity_Data_initial = Impurity(V_initial, Imp_initial)
+
+    Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_initial)
+    E_initial, psi_initial = eigenstates(Impurity_H, Degeneracy)
+    
+    ψ_mat = hcat([psi_initial[i].data for i in 1:Degeneracy] ...) # matrix form
+    ψ_first = copy(ψ_mat)
+
+    Converge = []
+    ψ_op = []
+    ψ_mat_list = []
+    imp_data = []
+
+    @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
+        
+        Imp_Site_step = [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1]]
+
+        for step in STEP
+                
+            V0_step = [V1*(1-step), V1*step, V2*(1-step), V2*step]
+
+            Impurity_Data_step = [Impurity(V0_step, Imp_Site_step)]
+            push!(imp_data, Impurity_Data_step)
+           
+            H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_step[1])
+           
+            ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
+            push!(ψ_op, ψ_tilde)
+            
+            ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
+            
+            # KM Algorithm:
+
+            #= A = ψ_mat'*ψ_tilde
+            push!(Converge, abs(det(A)))
+            A_inv = inv(A) 
+            ψ_mat = ψ_tilde*A_inv
+            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) =# # new vector 
+            
+            
+            # Vanderbilt:
+            
+            A = ψ_mat' * ψ_tilde
+            push!(Converge, abs(det(A)))
+            V, Σ, W = svd(A)
+            M = V * W'
+            ψ_mat = ψ_tilde * M'      
+            push!(ψ_mat_list, ψ_mat)
+        end
+    end
+    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list
+end
+
+function get_phases2(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
 
     V1 = Impurity_Data.V0[1]
     V2 = Impurity_Data.V0[2]
@@ -43,61 +163,88 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
     Impurity_Data = Impurity(V0, Imp_Site)
     Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data)
     E0, ψ = eigenstates(Impurity_H, Degeneracy)
-    #E0, ψ = fixed_pn_sector(pn, E0, ψ, basis_cut_mb) 
     
     ψ = hcat([ψ[i].data for i in 1:Degeneracy] ...) # matrix form
-    # ψ = hcat([ψ[i].data for i in 1:length(E0)] ...)
     ψ_first = copy(ψ)
-
-    Imp_Site_List = [ [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1] ] for (idx,imp) in (enumerate(rec_path_1[1:end-1])) ]
-    V0_List = [ [V1*(1-step), V1*step, V2*(1-step), V2*step] for step in STEP ]
-    
-    Impurity_Data_List = [ [Impurity(V00, Imp_Sitee)] for Imp_Sitee in Imp_Site_List for V00 in V0_List ]
-    Impurity_H_List = [ Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Dataa[1]) for Impurity_Dataa in Impurity_Data_List]
     
     ψ_tilde_list = []
+    ψ_tilde_op_list = []
     ψ_list = []
+    ψ_updated = []
     A_inv_list = []
     A_list = []
     E_list = []
+    imp_data_list = []
+    Conv_list = []
 
-    @showprogress for H in Impurity_H_List
+    @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
         
-        ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
-        #ϵ, ψ_tilde = fixed_pn_sector(pn, ϵ, ψ_tilde, basis_cut_mb) 
-        push!(E_list, ϵ)
-        
-        ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
-        push!(ψ_tilde_list, ψ_tilde)
+        Imp_Site = [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1]]
 
-        # KM Algorithm #
-        #= A = ψ'*ψ_tilde
-        push!(A_list, A)
-        A_inv = inv(A) 
-        push!(A_inv_list, A_inv)
-        ψ = ψ_tilde*A_inv =# 
-        # !!!
-        
-        # !!! Vanderbilt
-        A = ψ' * ψ_tilde
-        push!(A_list, A)
-        V, Σ, W = svd(A)
-        M = V * W'
-        ψ = ψ_tilde * M'
-        # !!!
+        #= 
+        push!(imp_site_list, Imp_Site)
+        =#
 
-        # DOESN'T WORK !!!
-        # Orthogonalize Method 1
-        # DOESN'T WORK !!!
-        # for i in 1:Degeneracy  # DOESN'T WORK !!!
-        #     norm = sqrt(ψ[:,i]'*ψ[:,i])  # DOESN'T WORK !!!
-        #     ψ[:,i] = ψ[:,i] ./ norm  # DOESN'T WORK !!!
-        # end  # DOESN'T WORK !!!
+        index = 0; Δ_step = 0.1; step = 0
+        while index < 100
+            index += 1
+            step += Δ_step
+        #for (index,step) in enumerate(STEP)
+                
 
-        # Orthogonalize Method 
-        # ψ = qr(ψ).Q * Matrix(I, size(ψ)...) # new vector
-        push!(ψ_list, ψ)
-        
+            #= 
+            if index >= 401 && index <= 405
+                continue
+            end ; push!(step_list, step) 
+            =#
+
+            V0 = [V1*(1-step), V1*step, V2*(1-step), V2*step]
+
+            Impurity_Data = [Impurity(V0, Imp_Site)]
+           
+
+            H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data[1])
+           
+            ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
+            
+            
+            ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
+            
+
+            # KM Algorithm
+            #= A = ψ'*ψ_tilde
+            push!(A_list, A)
+            A_inv = inv(A) 
+            push!(A_inv_list, A_inv)
+            ψ = ψ_tilde*A_inv
+            push!(ψ_updated, ψ)  
+            ψ = qr(ψ).Q * Matrix(I, size(ψ)...) # new vector =#
+
+            # Vanderbilt:
+            A = ψ' * ψ_tilde
+            
+            Conv = abs(det(A))
+            
+            if Conv > 0.9
+                push!(A_list, A)    
+                push!(Conv_list, Conv)
+                push!(imp_data_list, Impurity_Data)
+                push!(E_list, ϵ)
+                push!(ψ_tilde_op_list, ψ_tilde)
+                push!(ψ_tilde_list, ψ_tilde)
+
+                V, Σ, W = svd(A)
+                M = V * W'
+                ψ = ψ_tilde * M'
+
+                push!(ψ_list, ψ) 
+                step += 1.5*Δ_step
+            else
+                step -= Δ_step
+                Δ_step = Δ_step/2
+            end
+            
+        end
     end
 
     # BerryMatrix = ψ' * ψ_first
@@ -105,8 +252,9 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
 
     #ϕ_tot = -imag(log(det(ψ' * ψ_first)))
     
-    return ψ, ψ_list, ψ_first, ψ_tilde_list, A_inv_list, A_list, E_list
+    return ψ, ψ_updated, ψ_list, ψ_first, ψ_tilde_list, ψ_tilde_op_list, A_inv_list, A_list, E_list, imp_data_list, Conv_list
 end
+
 
 E_Split(N) = E_list[N][2] - E_list[N][1] 
 E_Gap(N) = E_list[N][3] - E_list[N][2] 

@@ -172,7 +172,7 @@ function movie(Nx, Ny, Degeneracy, N, Sub_Number_MB_Operator_List, basis_cut_mb,
 end
 
 function get_braiding_path(Imp_Site, Nx, Ny, co)
-    start_point = Imp_Site[1] # Moving site of quasihole
+    start_point = Imp_Site[2] # Moving site of quasihole
     First_Path = Int64[]
     mod_list = [mod(start_point,Nx),mod(start_point,Ny)]
     bottom_site_in_the_Ny_direction = mod_list[mod_list .> 0][1]

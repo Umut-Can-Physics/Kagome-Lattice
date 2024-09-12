@@ -7,15 +7,6 @@ function plot_square_lattice(N, Nx, Ny)
     return co, display(p)
 end
 
-#! I DON'T USE IT !#
-#= function H_sp(N, Nx, Ny, p, q)
-    sp_basis = NLevelBasis(N)
-    periodicity = 0 #periodic (select 1 for hard-wall conditions)
-    sp_matrix = Hofstadter_SP(Nx, Ny, p/q, periodicity)
-    H1 = get_sp_op(N, sp_matrix)
-    return H1, sp_basis
-end =#
-
 function Sp_Op(sp_basis, matrix)
     H = get_sp_op(sp_basis, matrix)
     return dense((H'+H)/2)
@@ -28,12 +19,12 @@ function H_sub(sp_basis, H1, cut_off)
     return H1_sub, basis_sub, P, Pt
 end
 
-function get_Bosonic_MB_Basis(sp_basis, PN, HardCore)
+function get_Bosonic_MB_Basis(sp_basis, pn, HardCore)
     if HardCore==false
-        N_States = bosonstates(sp_basis, PN)
+        N_States = bosonstates(sp_basis, pn)
         N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
     elseif HardCore==true
-        N_States = fermionstates(sp_basis, PN)
+        N_States = fermionstates(sp_basis, pn)
         N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
     end
     return N_Basis_MB
@@ -64,29 +55,21 @@ end =#
 
 # find energies of specific particle number 
 function fixed_pn_sector(pn, E, V, b)
-
     PN = []
-
     for i in 1:length(E)
         push!(PN, round(expect(number(b), V[i])))
     end
-    
     ind = findall(x->x == 1, PN.==pn)
-
     ϵ_fixed = []
-
     for i in ind
         push!(ϵ_fixed, E[i])
     end
-
     λ_fixed = []
-
     for i in ind
         push!(λ_fixed, V[i])
     end
-
-    return ϵ_fixed, λ_fixed
-end
+    return PN, ϵ_fixed, λ_fixed
+end 
 
 function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
 
@@ -96,6 +79,11 @@ function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
 
     if HardCore==true
         basis_cut_mb = get_Bosonic_MB_Basis(Sub_Basis, pn, true)
+        #basis_cut_sp = NLevelBasis(Cut_Off)
+        #basis_cut_mb = get_Bosonic_MB_Basis(basis_cut_sp, pn, true)
+
+        # type of are different but the marix are the same in contect of H_TotalSub: Sub_Basis = basis_cut_sp 
+
         H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
         basis_mb_sub = boson_mb_basis(Sub_Basis, pn, true)
         H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp)
@@ -112,7 +100,7 @@ function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
         H_TotalSub = (H_TotalSub'+H_TotalSub)/2  
     end
 
-    return H_TotalSub, P, Pt, basis_mb_sub
+    return H_TotalSub, P, Pt, basis_mb_sub, Sub_Basis
 end
 
 function H_Hubbard(N, pn, matrix, HardCore)
@@ -122,8 +110,8 @@ function H_Hubbard(N, pn, matrix, HardCore)
     if HardCore==true
         basis_mb = get_Bosonic_MB_Basis(basis_sp, pn, true)
         H_MB = get_mb_op(basis_mb, H)
-        H_Int = Hubbard_Interaction_Full(N, basis_sp, basis_mb, U)
-        H_Total_full = H_MB + H_Int
+        #H_Int = Hubbard_Interaction_Full(N, basis_sp, basis_mb, U)
+        H_Total_full = H_MB 
         H_Total_full = (H_Total_full'+H_Total_full)/2
     elseif HardCore==false
         basis_mb = get_Bosonic_MB_Basis(basis_sp, pn, false)
