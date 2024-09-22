@@ -77,10 +77,10 @@ function plot_paths(co, First_Path, Second_Path)
     for (idx,value) in enumerate(Second_Path)
             N[idx,:] = co[value,:]
     end
-    p1 = scatter(co[:,1],co[:,2], series_annotations = text.([i for i in 1:Nx*Ny], :bottom), legend=false, aspect_ratio = :equal)
-    p2 = plot!(M[:, 1], M[:, 2], linewidth=2, c=:blue,legend=:false)
-    p3 = plot!(N[:, 1], N[:, 2], linewidth=2, c=:red,legend=:false)
-    return display(p3)
+    p1 = scatter(co[:,1],co[:,2], series_annotations = text.([i for i in 1:Nx*Ny], :bottom), aspect_ratio = :equal, label="Lattice Sites", title="QH's Paths", xlabel=L"x",ylabel=L"y")
+    p2 = plot!(M[:, 1], M[:, 2], linewidth=2, c=:blue, label="Path for first QH")
+    p3 = plot!(N[:, 1], N[:, 2], linewidth=2, c=:red, label="Path for second QH")
+    return savefig(p3, "Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/qh_moving_paths.png")
 end
 
 function th_AB_phase(pn, p, q, N_Pin, N_mov, number_of_plaq)
@@ -133,21 +133,21 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
             
             # KM Algorithm:
 
-            #= A = ψ_mat'*ψ_tilde
+            A = ψ_mat'*ψ_tilde
             push!(Converge, abs(det(A)))
             A_inv = inv(A) 
             ψ_mat = ψ_tilde*A_inv
-            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) =# # new vector 
+            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector 
             
             
             # Vanderbilt:
             
-            A = ψ_mat' * ψ_tilde
+            #= A = ψ_mat' * ψ_tilde
             push!(Converge, abs(det(A)))
             V, Σ, W = svd(A)
             M = V * W'
             ψ_mat = ψ_tilde * M'      
-            push!(ψ_mat_list, ψ_mat)
+            push!(ψ_mat_list, ψ_mat) =#
         end
     end
     return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list
