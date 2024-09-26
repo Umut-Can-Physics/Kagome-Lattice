@@ -5,10 +5,10 @@ using QuantumOptics; using SparseArrays; using Plots; using LinearAlgebra; using
 
 includet("../Scripts/FirstBandApproximation.jl"); includet("../Scripts/ManyBody.jl"); includet("KM_Model.jl"); includet("../Scripts/Impurity.jl"); includet("../Scripts/Braiding.jl")
 
-Nx = 6
-Ny = 6
+Nx = 4
+Ny = 4
 p = 1
-q = 3
+q = 2
 ϕ=p/q
 pn = 3
 U = 4 # on-site interaction potential
@@ -31,7 +31,7 @@ title_sp = latexstring("KM Single Particle Spectrum \n \$ N_x=$(Nx), N_y=$(Ny), 
 sp_spectrum = scatter(ϵ_sp, xlabel=L"n", ylabel=L"E", label=false, title=title_sp)
 savefig(sp_spectrum,"Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/sp_spectrum.png")
 
-V0 = [V, V]; Imp_Site = [26, 11]
+V0 = [V, V]; Imp_Site = [10, 4]
 Impurity_Data = Impurity(V0, Imp_Site)
 NPin = 2 # It just defines # of degeneracy 
 
@@ -63,34 +63,37 @@ Initial_Configuration = heatmap(Get_Avg_Density(Nx, Ny, Degeneracy, N_Site, Numb
 savefig(Initial_Configuration, "Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/Initial_Configuration.png")
 
 # EXCHANGE & DOUBLE EXCHANGE PATH
-start_point_1 = 26
-start_point_2 = 11
+start_point_1 = 10
+start_point_2 = 4
 lens = [2, 2, 2, 2]
 rec_path_1, rec_path_2 = exchange_path(lens, start_point_1, start_point_2)
 
+
 # BRAIDING PATH
-moving_point = 11
-fixed_point = 26
+moving_point = 7
+fixed_point = 13
 path_1, path_2 = braiding_path(moving_point, fixed_point, Nx, Ny, co)
 
 plot_paths(co, rec_path_1, rec_path_2)
 
 V_initial = 0
+step_break = 0.01
 V_final = 1
-STEP = V_initial:0.01:V_final
+#-step_break
+STEP = V_initial:step_break:V_final
 println("Step size between two sites:",length(STEP))
 
 # BRAIDING
 PATH1 = rec_path_1
 PATH2 = rec_path_2
-ψ_first, ψ_mat, Converge, ψ_op, mp_data, ψ_mat_list = get_phases(Impurity_Data, PATH1, PATH2, basis_mb, STEP, HTotal, Number_MB_Operator_List, Degeneracy)
+ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list = get_phases(Impurity_Data, PATH1, PATH2, basis_mb, STEP, HTotal, Number_MB_Operator_List, Degeneracy)
 
 conv_plot = plot(Converge, title="Converge Values \n Step Size=$(length(STEP))", xlabel=L"n", ylabel=L"C = abs|<ψ|\tilde{\psi}>|", legend=false)
 savefig(conv_plot, "Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/conv_plot.png")
 
 BerryMatrix = ψ_mat'*ψ_first
-print(Berry_Matrix)
 BerryE, BerryU = eigen(BerryMatrix)
+println(BerryE,angle.(BerryE)./pi)
 
 # AB PHASE
 #= N_mov = 2
@@ -99,7 +102,7 @@ number_of_plaq = 1
 θ_exchange = charge*pi
 θ_AB =#
 
-print(" :: EXCHANGE PATH ::
+#= print(" :: EXCHANGE PATH ::
 Eigenvalues: $(BerryE) \n 
 SUM and AVARAGE of eigenvalues:
 sum(BerryE)= $(sum(BerryE))
@@ -117,5 +120,5 @@ SUM and AVARAGE of Phases of eigenvalues:
 sum(log.(BerryE)./(im*pi)) = $(sum(log.(BerryE)./(im*pi)))
 sum(log.(BerryE)./(im*pi))/$(Degeneracy) = $(sum(log.(BerryE)./(im*pi))/Degeneracy) \n
 ----
-")
+") =#
 #θ_AB= $(θ_AB) | exp(θ_AB)=$(ex) | Q=$(charge) | θ_exchange(Q*pi) = $(θ_exchange)

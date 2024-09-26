@@ -112,14 +112,19 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
     ψ_op = []
     ψ_mat_list = []
     imp_data = []
+    ϵ_list = []
+
+    step_break = STEP[2]-STEP[1]
 
     @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
         
+        #Imp_Site_step = [imp, rec_path_1[idx+1], rec_path_1[mod(idx+1,length(rec_path_1))+1],rec_path_2[idx], rec_path_2[idx+1], rec_path_2[mod(idx+1,length(rec_path_2))+1]]
         Imp_Site_step = [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1]]
-
+        
         for step in STEP
                 
-            V0_step = [V1*(1-step), V1*step, V2*(1-step), V2*step]
+            #V0_step = [V1*(1-step-(step_break/10)), V1*(step+step_break/10), V1/100,V2*(1-step), V2*step, 0*V2/100]
+            V0_step = [round(V1*(1-step),digits=2), round(V1*step, digits=2), round(V2*(1-step), digits=2), round(V2*step, digits=2)]
 
             Impurity_Data_step = [Impurity(V0_step, Imp_Site_step)]
             push!(imp_data, Impurity_Data_step)
@@ -128,6 +133,7 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
            
             ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
             push!(ψ_op, ψ_tilde)
+            push!(ϵ_list, ϵ)
             
             ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
             
@@ -137,8 +143,7 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
             push!(Converge, abs(det(A)))
             A_inv = inv(A) 
             ψ_mat = ψ_tilde*A_inv
-            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector 
-            
+            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector
             
             # Vanderbilt:
             
@@ -150,7 +155,7 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
             push!(ψ_mat_list, ψ_mat) =#
         end
     end
-    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list
+    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list
 end
 
 function get_phases2(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
