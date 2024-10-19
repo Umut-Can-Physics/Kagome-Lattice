@@ -1,10 +1,10 @@
 using Revise
 includet("FirstBandApproximation.jl")
 
-function plot_square_lattice(N, Nx, Ny)
+function plot_square_lattice(N, Nx, Ny; path="Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/square_lattice.png")
     co = vcat( ( [y x] for x in 0:Ny-1 for y in 0:Nx-1 ) ... )
     p = scatter(co[:,1],co[:,2], series_annotations = text.([i for i in 1:N], :bottom), legend=false, aspect_ratio = :equal)
-    return co, savefig(p,"Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/square_lattice.png")
+    return co, savefig(p,path)
 end
 
 function Sp_Op(sp_basis, matrix)
@@ -121,5 +121,5 @@ function H_Hubbard(N, pn, matrix, HardCore)
         H_Total_full = (H_Total_full'+H_Total_full)/2
     end
 
-    return H_Total_full, basis_mb
+    return H_Total_full, basis_mb, basis_sp
 end

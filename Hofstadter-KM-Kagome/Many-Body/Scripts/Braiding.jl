@@ -137,23 +137,9 @@ end
     return  
 end =#
 
-function get_phases(λ_firstt, V, V_rand, rec_path_1, rec_path_2, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
+function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub_Number_MB_Operator_List, Degeneracy)
 
-    #= # INITIAL POSITION 
-    V1 = Impurity_Data.V0[1]
-    V2 = Impurity_Data.V0[2]
-    Imp_initial = [rec_path_1[1], rec_path_1[2], rec_path_2[1], rec_path_2[2]]
-    V_initial = [V1, 0, V2, 0] 
-    Impurity_Data_initial = Impurity(V_initial, Imp_initial)
-
-    Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_initial, V_rand)
-    _, psi_initial = eigenstates(Impurity_H, Degeneracy)
-    
-    # matrix form
-    ψ_mat = hcat([psi_initial[i].data for i in 1:Degeneracy] ...) 
-    ψ_first = copy(ψ_mat) =#
-
-    ψ_mat = λ_firstt
+    ψ_mat = Psi_first
     ψ_first = copy(ψ_mat)
     V1 = V2 = V
 
@@ -170,15 +156,16 @@ function get_phases(λ_firstt, V, V_rand, rec_path_1, rec_path_2, STEP, Total_H,
         
         for step in STEP[2:end]
                 
-            V0_step = [round(V1*(1-step),digits=2), round(V1*step, digits=2), round(V2*(1-step), digits=2), round(V2*step, digits=2)]
+            #V0_step = [round(V1*(1-step),digits=2), round(V1*step, digits=2), round(V2*(1-step), digits=2), round(V2*step, digits=2)]
+            V0_step = [V1*(1-step), V1*step, V2*(1-step), V2*step]
             push!(V0_step_list, V0_step)
 
             Impurity_Data_step = [Impurity(V0_step, Imp_Site_step)]
             push!(imp_data, Impurity_Data_step)
            
-            H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
+            Himp = Imp_H(Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
            
-            ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
+            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy) 
             push!(ψ_op, ψ_tilde)
             push!(ϵ_list, ϵ)
             
@@ -205,20 +192,19 @@ function get_phases(λ_firstt, V, V_rand, rec_path_1, rec_path_2, STEP, Total_H,
                 end
             end =#
 
+            #=
             A_inv = inv(A) 
             ψ_mat = ψ_tilde*A_inv
-            
             ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector 
-
+            =#
 
             # Vanderbilt:
             
-            #= A = ψ_mat' * ψ_tilde
-            push!(Converge, abs(det(A)))
             V, Σ, W = svd(A)
             M = V * W'
-            ψ_mat = ψ_tilde * M'      
-            push!(ψ_mat_list, ψ_mat) =#
+            ψ_mat = ψ_tilde * M'
+            
+            push!(ψ_mat_list, ψ_mat) 
         end
     end
     return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list, V0_step_list

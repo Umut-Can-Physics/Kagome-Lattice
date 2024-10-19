@@ -3,14 +3,16 @@ struct Impurity
     Imp_Site::Vector{Int64}
 end
 
-function Imp_H(H, Sub_Number_MB_Operator_List, Impurity_Data, V_rand)
+function Imp_H(Number_MB, Impurity_Data, V_rand)
     # Random Impurtiy: To unsure that finding all degeneracy by studying sparse matrices
-    #Rand_Imp = V_rand * Operator(H.basis_r, rand(size(H,1),size(H,1)))
-    for imp in 1:length(Impurity_Data.V0)
-        H += Impurity_Data.V0[imp] * Sub_Number_MB_Operator_List[Impurity_Data.Imp_Site[imp]] 
-        #* Rand_Imp
+    Vimp = Impurity_Data.V0[1] * Number_MB[Impurity_Data.Imp_Site[1]] 
+    for imp in 2:length(Impurity_Data.V0)
+        Vimp += Impurity_Data.V0[imp] * Number_MB[Impurity_Data.Imp_Site[imp]] 
     end
-    return dense((H'+H)/2)
+    for Nop in Number_MB
+        Vimp += Vrand * rand() * Nop
+    end
+    return (Vimp'+Vimp)/2
 end
 
 function ground_degeneracy(Nx, Ny, p, q, N_Pin, pn)
@@ -18,11 +20,11 @@ function ground_degeneracy(Nx, Ny, p, q, N_Pin, pn)
     NPhi = NPhi0-N_Pin
     nu0 = 1/2
     N_d = Int(NPhi - pn/nu0)
-    if length(PN) == 1
-        Degeneracy = 1
-    else
-        Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
-    end
+    #if length(pn) == 1
+    #    Degeneracy = 1
+    #else
+    Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
+    #end
     return Degeneracy, pn, NPhi0, N_d
 end
 
