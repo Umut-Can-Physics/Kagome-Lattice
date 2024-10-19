@@ -3,9 +3,12 @@ struct Impurity
     Imp_Site::Vector{Int64}
 end
 
-function Imp_H(H, Sub_Number_MB_Operator_List, Impurity_Data)
+function Imp_H(H, Sub_Number_MB_Operator_List, Impurity_Data, V_rand)
+    # Random Impurtiy: To unsure that finding all degeneracy by studying sparse matrices
+    #Rand_Imp = V_rand * Operator(H.basis_r, rand(size(H,1),size(H,1)))
     for imp in 1:length(Impurity_Data.V0)
-        H += Impurity_Data.V0[imp] * Sub_Number_MB_Operator_List[Impurity_Data.Imp_Site[imp]]
+        H += Impurity_Data.V0[imp] * Sub_Number_MB_Operator_List[Impurity_Data.Imp_Site[imp]] 
+        #* Rand_Imp
     end
     return dense((H'+H)/2)
 end

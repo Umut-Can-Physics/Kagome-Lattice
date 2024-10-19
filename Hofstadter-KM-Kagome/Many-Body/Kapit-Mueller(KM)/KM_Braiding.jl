@@ -10,9 +10,10 @@ Ny = 4
 p = 1
 q = 2
 ϕ=p/q
-pn = 3
-U = 4 # on-site interaction potential
+pn = 2
+U = 1 # on-site interaction potential
 V = 10 # Impurity potential
+V_rand = 1e-14
 
 N_Site = Nx*Ny
 N = N_Site
@@ -31,9 +32,12 @@ title_sp = latexstring("KM Single Particle Spectrum \n \$ N_x=$(Nx), N_y=$(Ny), 
 sp_spectrum = scatter(ϵ_sp, xlabel=L"n", ylabel=L"E", label=false, title=title_sp)
 savefig(sp_spectrum,"Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/sp_spectrum.png")
 
-V0 = [V, V]; Imp_Site = [10, 4]
+V0 = [V, V]; Imp_Site = [13, 7]
+V00 = [V, 0, V, 0]; Imp_Sitee = [13, 14, 7, 7]
 Impurity_Data = Impurity(V0, Imp_Site)
+Impurity_Dataa = Impurity(V00, Imp_Sitee)
 NPin = 2 # It just defines # of degeneracy 
+NPinn = 4
 
 Degeneracy, _, _, _ = ground_degeneracy(Nx, Ny, p, q, NPin, pn)
 
@@ -46,7 +50,9 @@ HTotal, basis_mb = H_Hubbard(N, pn, matrix, HardCore)
 num_list = get_num_list(N)
 basis_sp = NLevelBasis(N)
 Number_MB_Operator_List = get_num_mb_op(N, basis_sp, num_list, basis_mb)
-Impurity_H_hard_core = Imp_H(HTotal, Number_MB_Operator_List, Impurity_Data)
+
+Impurity_H_hard_core = Imp_H(HTotal, Number_MB_Operator_List, Impurity_Data, V_rand)
+Impurity_H_hard_coree = Imp_H(HTotal, Number_MB_Operator_List, Impurity_Dataa, V_rand)
 
 #= ϵϵ, λλ = eigenstates(dense(HTotal))
 title_mb = latexstring("KM MB Spectrum \n \$ N_x=$(Nx), N_y=$(Ny), \\phi=$(p//q), N=$(pn), U=$(U), V=$(V) \$")
@@ -54,20 +60,32 @@ mb_spectrum = scatter(ϵϵ, xlabel=L"n", ylabel=L"E", label="Hard-Core=$(HardCor
 savefig(mb_spectrum,"Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/mb_spectrum.png") =#
 
 ϵ, λ = eigenstates(Impurity_H_hard_core)
+ϵϵϵϵ, λλλλ = eigenstates(Impurity_H_hard_core)
 title_mb_imp = latexstring("KM MB Impurity Spectrum \n \$ N_x=$(Nx), N_y=$(Ny), \\phi=$(p//q), N=$(pn), U=$(U), V=$(V) \$")
 mb_imp_spectrum = scatter(ϵ, xlabel=L"n", ylabel=L"E", label="Hard-Core=$(HardCore)", title=title_mb_imp)
 mb_imp_spectrum_zoom = scatter(ϵ[1:Degeneracy+5], xlabel=L"n", ylabel=L"E", label="Hard-Core=$(HardCore)", title=title_mb_imp)
 savefig(mb_imp_spectrum_zoom,"Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/mb_imp_spectrum_zoom.png")
 
+λ_first = hcat([λ[i].data for i in 1:Degeneracy] ...)
+λ_firstt = hcat([λλλλ[i].data for i in 1:Degeneracy] ...)
+
 Initial_Configuration = heatmap(Get_Avg_Density(Nx, Ny, Degeneracy, N_Site, Number_MB_Operator_List, basis_mb, λ)', title="Initial Configuration of QH",c=:roma)
 savefig(Initial_Configuration, "Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/Initial_Configuration.png")
 
-# EXCHANGE & DOUBLE EXCHANGE PATH
-start_point_1 = 10
-start_point_2 = 4
+####################
+# BRAIDING SECTION #
+####################
+
+# EXCHANGE & DOUBLE EXCHANGE PATH (One by One & Simultaneously)
+start_point_1 = 13
+start_point_2 = 7
 lens = [2, 2, 2, 2]
 rec_path_1, rec_path_2 = exchange_path(lens, start_point_1, start_point_2)
+rec_path_1 = [13,14,15,15,15,11,7,7,7]
+rec_path_2 = [7,7,7,6,5,5,5,9,13]
 
+two_neighbor_sites = [[13,14],[14,15],[7,6],[6,5],[15,11],[11,7],[5,9],[9,13]]
+const_qhs = [7,7,15,15,5,5,7,7]
 
 # BRAIDING PATH
 moving_point = 7
@@ -83,17 +101,37 @@ V_final = 1
 STEP = V_initial:step_break:V_final
 println("Step size between two sites:",length(STEP))
 
-# BRAIDING
+#=
+V1 = V0[1]
+V2 = V0[2]
+Imp_Site = [13,14,15,16]
+function H_t(t, psi, Imp_Site, HTotal, Number_MB_Operator_List)
+    V0_t = [V1*(1-t), V1*t, V2*(1-t), V2*t]    
+    Impurity_Data_step = [Impurity(V0_t, Imp_Site)]
+    return Imp_H(HTotal, Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
+end
+
+t_span = [0:0.1:1;]
+timeevolution.schroedinger_dynamic(t_span, λ[1], H_t) 
+=#
+
 PATH1 = rec_path_1
 PATH2 = rec_path_2
-ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list = get_phases(Impurity_Data, PATH1, PATH2, basis_mb, STEP, HTotal, Number_MB_Operator_List, Degeneracy)
+#ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list, V0_step_list = get_phases(λ_firstt, V, V_rand, PATH1, PATH2, STEP, HTotal, Number_MB_Operator_List, Degeneracy)
+ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list, V0_step_list = get_phases_simultaneously(λ_firstt, two_neighbor_sites, const_qhs, V, V_rand, STEP, HTotal, Number_MB_Operator_List, Degeneracy)
 
 conv_plot = plot(Converge, title="Converge Values \n Step Size=$(length(STEP))", xlabel=L"n", ylabel=L"C = abs|<ψ|\tilde{\psi}>|", legend=false)
 savefig(conv_plot, "Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/conv_plot.png")
 
 BerryMatrix = ψ_mat'*ψ_first
 BerryE, BerryU = eigen(BerryMatrix)
-println(BerryE,angle.(BerryE)./pi)
+println(BerryE)
+#println(BerryE,angle.(BerryE)./pi)
+
+# MOVIE
+    @gif for i in 1:800
+        heatmap(Get_Avg_Density(Nx, Ny, Degeneracy, N_Site, Number_MB_Operator_List, basis_mb, ψ_op[i])', title="Initial Configuration of QH",c=:roma)
+    end
 
 # AB PHASE
 #= N_mov = 2

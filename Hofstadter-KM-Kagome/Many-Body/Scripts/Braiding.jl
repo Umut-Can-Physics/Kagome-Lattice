@@ -88,12 +88,12 @@ function th_AB_phase(pn, p, q, N_Pin, N_mov, number_of_plaq)
     charge = pn/(NPhi-N_Pin)
     # exch path: N_mov = 1
     # double exch path: N_mov = 2
-    θ_AB = N_mov * (p/q) * charge * number_of_plaq
+    θ_AB = 2 * N_mov * (p/q) * charge * number_of_plaq
     ex = exp(2*im*pi*θ_AB)
     return θ_AB, ex, charge
 end
 
-function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
+#= function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
 
     # INITIAL POSITION 
     V1 = Impurity_Data.V0[1]
@@ -105,8 +105,9 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
     Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_initial)
     E_initial, psi_initial = eigenstates(Impurity_H, Degeneracy)
     
-    ψ_mat = hcat([psi_initial[i].data for i in 1:Degeneracy] ...) # matrix form
-    ψ_first = copy(ψ_mat)
+    #ψ0 = hcat([psi_initial[i].data for i in 1:1] ...) # matrix form
+    ψ0 = psi_initial[1]
+    ψ_first = copy(ψ0)
 
     Converge = []
     ψ_op = []
@@ -115,36 +116,101 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
     ϵ_list = []
 
     step_break = STEP[2]-STEP[1]
+    t_span = [0:0.1:1;]
 
     @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
         
         #Imp_Site_step = [imp, rec_path_1[idx+1], rec_path_1[mod(idx+1,length(rec_path_1))+1],rec_path_2[idx], rec_path_2[idx+1], rec_path_2[mod(idx+1,length(rec_path_2))+1]]
         Imp_Site_step = [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1]]
         
-        for step in STEP
+        function H_t(t, psi; Imp_Site_step=Imp_Site_step, Total_H=Total_H, Sub_Number_MB_Operator_List=Sub_Number_MB_Operator_List)
+            V0_t = [round(V1*(1-t),digits=2), round(V1*t, digits=2), round(V2*(1-t), digits=2), round(V2*t, digits=2)]
+            Impurity_Data_step = [Impurity(V0_t, Imp_Site_step)]
+            return Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_step[1])
+        end
+        
+        tout, ψₜ = timeevolution.schroedinger_dynamic(t_span, ψ0, H_t)
+        ψ0 = ψₜ
+
+    end
+#ψ_first, ψ0
+    return  
+end =#
+
+function get_phases(λ_firstt, V, V_rand, rec_path_1, rec_path_2, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
+
+    #= # INITIAL POSITION 
+    V1 = Impurity_Data.V0[1]
+    V2 = Impurity_Data.V0[2]
+    Imp_initial = [rec_path_1[1], rec_path_1[2], rec_path_2[1], rec_path_2[2]]
+    V_initial = [V1, 0, V2, 0] 
+    Impurity_Data_initial = Impurity(V_initial, Imp_initial)
+
+    Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_initial, V_rand)
+    _, psi_initial = eigenstates(Impurity_H, Degeneracy)
+    
+    # matrix form
+    ψ_mat = hcat([psi_initial[i].data for i in 1:Degeneracy] ...) 
+    ψ_first = copy(ψ_mat) =#
+
+    ψ_mat = λ_firstt
+    ψ_first = copy(ψ_mat)
+    V1 = V2 = V
+
+    Converge = []
+    ψ_op = []
+    ψ_mat_list = []
+    imp_data = []
+    ϵ_list = []
+    V0_step_list = []
+
+    @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
+        
+        Imp_Site_step = [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1]]
+        
+        for step in STEP[2:end]
                 
-            #V0_step = [V1*(1-step-(step_break/10)), V1*(step+step_break/10), V1/100,V2*(1-step), V2*step, 0*V2/100]
             V0_step = [round(V1*(1-step),digits=2), round(V1*step, digits=2), round(V2*(1-step), digits=2), round(V2*step, digits=2)]
+            push!(V0_step_list, V0_step)
 
             Impurity_Data_step = [Impurity(V0_step, Imp_Site_step)]
             push!(imp_data, Impurity_Data_step)
            
-            H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_step[1])
+            H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
            
             ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
             push!(ψ_op, ψ_tilde)
             push!(ϵ_list, ϵ)
             
-            ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
+            ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...) # matrix form
             
             # KM Algorithm:
 
             A = ψ_mat'*ψ_tilde
+
+            #= AA = zeros(ComplexF64, length(ϵ), length(ϵ))
+            for i in 1:length(ϵ)
+                for j in 1:length(ϵ)
+                    AA[i,j] = ψ_mat[:,i]'*ψ_tilde[:,j]
+                end
+            end =#
+
             push!(Converge, abs(det(A)))
+            #push!(Converge, abs(det(AA)))
+
+            #= AA_inv = inv(AA)
+            for i in 1:length(ϵ)
+                for j in 1:length(ϵ)
+                    ψ_mat[:,i] += AA_inv[i,j]*ψ_tilde[:,j]
+                end
+            end =#
+
             A_inv = inv(A) 
             ψ_mat = ψ_tilde*A_inv
-            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector
             
+            ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector 
+
+
             # Vanderbilt:
             
             #= A = ψ_mat' * ψ_tilde
@@ -155,109 +221,82 @@ function get_phases(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, T
             push!(ψ_mat_list, ψ_mat) =#
         end
     end
-    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list
+    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list, V0_step_list
 end
 
-function get_phases2(Impurity_Data, rec_path_1, rec_path_2, basis_cut_mb, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
 
-    V1 = Impurity_Data.V0[1]
-    V2 = Impurity_Data.V0[2]
-    Imp_Site = [rec_path_1[1], rec_path_1[2], rec_path_2[1], rec_path_2[2]]
-    V0 = [V1, 0, V2, 0] 
+function get_phases_simultaneously(λ_firstt, two_neighbor_sites, const_qhs, V, V_rand, STEP, Total_H, Sub_Number_MB_Operator_List, Degeneracy)
 
-    Impurity_Data = Impurity(V0, Imp_Site)
-    Impurity_H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data)
-    E0, ψ = eigenstates(Impurity_H, Degeneracy)
-    
-    ψ = hcat([ψ[i].data for i in 1:Degeneracy] ...) # matrix form
-    ψ_first = copy(ψ)
-    
-    ψ_tilde_list = []
-    ψ_tilde_op_list = []
-    ψ_list = []
-    ψ_updated = []
-    A_inv_list = []
-    A_list = []
-    E_list = []
-    imp_data_list = []
-    Conv_list = []
+    ψ_mat = λ_firstt
+    ψ_first = copy(ψ_mat)
 
-    @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
+    Converge = []
+    ψ_op = []
+    ψ_mat_list = []
+    imp_data = []
+    ϵ_list = []
+    V0_step_list = []
+
+    for n_si in two_neighbor_sites
+
+        for c_qh in const_qhs
+
+        Imp_Site_step = [n_si[1], n_si[2], c_qh]
         
-        Imp_Site = [imp, rec_path_1[idx+1], rec_path_2[idx], rec_path_2[idx+1]]
+            for step in STEP[2:end]
+                    
+                V0_step = [V*(1-step), V*step, V]
+                push!(V0_step_list, V0_step)
 
-        #= 
-        push!(imp_site_list, Imp_Site)
-        =#
-
-        index = 0; Δ_step = 0.1; step = 0
-        while index < 100
-            index += 1
-            step += Δ_step
-        #for (index,step) in enumerate(STEP)
+                Impurity_Data_step = [Impurity(V0_step, Imp_Site_step)]
+                push!(imp_data, Impurity_Data_step)
+            
+                H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
+            
+                ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
+                push!(ψ_op, ψ_tilde)
+                push!(ϵ_list, ϵ)
                 
+                ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...) # matrix form
+                
+                # KM Algorithm:
 
-            #= 
-            if index >= 401 && index <= 405
-                continue
-            end ; push!(step_list, step) 
-            =#
+                A = ψ_mat'*ψ_tilde
 
-            V0 = [V1*(1-step), V1*step, V2*(1-step), V2*step]
+                #= AA = zeros(ComplexF64, length(ϵ), length(ϵ))
+                for i in 1:length(ϵ)
+                    for j in 1:length(ϵ)
+                        AA[i,j] = ψ_mat[:,i]'*ψ_tilde[:,j]
+                    end
+                end =#
 
-            Impurity_Data = [Impurity(V0, Imp_Site)]
-           
+                push!(Converge, abs(det(A)))
+                #push!(Converge, abs(det(AA)))
 
-            H = Imp_H(Total_H, Sub_Number_MB_Operator_List, Impurity_Data[1])
-           
-            ϵ, ψ_tilde = eigenstates(H, Degeneracy) 
-            
-            
-            ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...)
-            
+                #= AA_inv = inv(AA)
+                for i in 1:length(ϵ)
+                    for j in 1:length(ϵ)
+                        ψ_mat[:,i] += AA_inv[i,j]*ψ_tilde[:,j]
+                    end
+                end =#
 
-            # KM Algorithm
-            #= A = ψ'*ψ_tilde
-            push!(A_list, A)
-            A_inv = inv(A) 
-            push!(A_inv_list, A_inv)
-            ψ = ψ_tilde*A_inv
-            push!(ψ_updated, ψ)  
-            ψ = qr(ψ).Q * Matrix(I, size(ψ)...) # new vector =#
+                A_inv = inv(A) 
+                ψ_mat = ψ_tilde*A_inv
+                
+                ψ_mat = qr(ψ_mat).Q * Matrix(I, size(ψ_mat)...) # new vector 
 
-            # Vanderbilt:
-            A = ψ' * ψ_tilde
-            
-            Conv = abs(det(A))
-            
-            if Conv > 0.9
-                push!(A_list, A)    
-                push!(Conv_list, Conv)
-                push!(imp_data_list, Impurity_Data)
-                push!(E_list, ϵ)
-                push!(ψ_tilde_op_list, ψ_tilde)
-                push!(ψ_tilde_list, ψ_tilde)
-
+                # Vanderbilt:
+                
+                #= A = ψ_mat' * ψ_tilde
+                push!(Converge, abs(det(A)))
                 V, Σ, W = svd(A)
                 M = V * W'
-                ψ = ψ_tilde * M'
-
-                push!(ψ_list, ψ) 
-                step += 1.5*Δ_step
-            else
-                step -= Δ_step
-                Δ_step = Δ_step/2
+                ψ_mat = ψ_tilde * M'      
+                push!(ψ_mat_list, ψ_mat) =#
             end
-            
         end
     end
-
-    # BerryMatrix = ψ' * ψ_first
-    # BerryEnergies, BerryStates = eigen(Berry_Matrix)
-
-    #ϕ_tot = -imag(log(det(ψ' * ψ_first)))
-    
-    return ψ, ψ_updated, ψ_list, ψ_first, ψ_tilde_list, ψ_tilde_op_list, A_inv_list, A_list, E_list, imp_data_list, Conv_list
+    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list, V0_step_list
 end
 
 
