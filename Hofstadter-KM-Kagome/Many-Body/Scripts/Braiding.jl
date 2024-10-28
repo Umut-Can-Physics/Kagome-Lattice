@@ -80,7 +80,7 @@ function plot_paths(co, First_Path, Second_Path)
     p1 = scatter(co[:,1],co[:,2], series_annotations = text.([i for i in 1:Nx*Ny], :bottom), aspect_ratio = :equal, label="Lattice Sites", title="QH's Paths", xlabel=L"x",ylabel=L"y")
     p2 = plot!(M[:, 1], M[:, 2], linewidth=2, c=:blue, label="Path for first QH")
     p3 = plot!(N[:, 1], N[:, 2], linewidth=2, c=:red, label="Path for second QH")
-    return savefig(p3, "Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/qh_moving_paths.png")
+    return p3
 end
 
 function th_AB_phase(pn, p, q, N_Pin, N_mov, number_of_plaq)
@@ -147,8 +147,9 @@ function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub
     ψ_op = []
     ψ_mat_list = []
     imp_data = []
-    ϵ_list = []
     V0_step_list = []
+    band_width = []
+    gap = []
 
     @showprogress for (idx,imp) in (enumerate(rec_path_1[1:end-1]))
         
@@ -165,9 +166,11 @@ function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub
            
             Himp = Imp_H(Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
            
-            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy) 
+            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy+1) 
+            ψ_tilde = ψ_tilde[1:Degeneracy]
             push!(ψ_op, ψ_tilde)
-            push!(ϵ_list, ϵ)
+            push!(band_width, ϵ[Degeneracy]-ϵ[1])
+            push!(gap, ϵ[Degeneracy+1]-ϵ[Degeneracy])
             
             ψ_tilde = hcat([ψ_tilde[i].data for i in 1:Degeneracy] ...) # matrix form
             
@@ -207,7 +210,7 @@ function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub
             push!(ψ_mat_list, ψ_mat) 
         end
     end
-    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, ϵ_list, V0_step_list
+    return ψ_first, ψ_mat, Converge, ψ_op, imp_data, ψ_mat_list, V0_step_list, band_width, gap
 end
 
 

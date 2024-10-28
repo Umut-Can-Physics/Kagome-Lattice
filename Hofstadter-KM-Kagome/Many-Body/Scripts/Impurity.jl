@@ -3,7 +3,7 @@ struct Impurity
     Imp_Site::Vector{Int64}
 end
 
-function Imp_H(Number_MB, Impurity_Data, V_rand)
+function Imp_H(Number_MB, Impurity_Data, Vrand)
     # Random Impurtiy: To unsure that finding all degeneracy by studying sparse matrices
     Vimp = Impurity_Data.V0[1] * Number_MB[Impurity_Data.Imp_Site[1]] 
     for imp in 2:length(Impurity_Data.V0)
@@ -34,13 +34,13 @@ function ParameterInfo(NPin, pn, Nx, Ny, p, q)
     N_d = Int(NPhi - pn/nu0)
     nu = pn//NPhi0
     Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
-    println("Lattice: ",Nx,"x",Ny,
+    return println("\n Lattice: ",Nx,"x",Ny,
         "\nThe Number of Flux per Unit-Cell (ϕ) = ",p//q,
         "\nFilling Fraction (ν) = ",nu," (The Number of Quasiholes = ",(NPin+N_d),
         ")\nThe Number of Flux Quanta = ", NPhi,
         " (Delocalised Number = ", N_d,
         ")\nThe Total Number of Particle = ",pn,
-        "\nThe Number of State of Ground Degeneracy = ",Degeneracy)
+        "\nThe Number of State of Ground Degeneracy = ",Degeneracy), Degeneracy, nu
 end
 
 function Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index)

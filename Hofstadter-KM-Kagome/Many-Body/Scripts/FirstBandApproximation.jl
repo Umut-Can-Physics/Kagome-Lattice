@@ -116,10 +116,9 @@ function get_mb_op(mb_basis, sp_op)
     
     mb_op = SparseOperator(mb_basis)
     
-    #N = sp_op.basis_l.N
     N = sp_op.basis_l.shape[1]
     
-    for i in 1:N
+    @inbounds for i in 1:N
         for j in 1:N
             mb_op += sp_op.data[i,j] * transition(mb_basis, i, j)
         end

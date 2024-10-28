@@ -1,10 +1,10 @@
 using Revise
 includet("FirstBandApproximation.jl")
 
-function plot_square_lattice(N, Nx, Ny; path="Hofstadter-KM-Kagome/Many-Body/Kapit-Mueller(KM)/Braiding_Data/square_lattice.png")
+function plot_square_lattice(N, Nx, Ny)
     co = vcat( ( [y x] for x in 0:Ny-1 for y in 0:Nx-1 ) ... )
     p = scatter(co[:,1],co[:,2], series_annotations = text.([i for i in 1:N], :bottom), legend=false, aspect_ratio = :equal)
-    return co, savefig(p,path)
+    return co, p
 end
 
 function Sp_Op(sp_basis, matrix)
@@ -28,10 +28,6 @@ function get_Bosonic_MB_Basis(sp_basis, pn, HardCore)
         N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
     end
     return N_Basis_MB
-end
-
-function get_Bosonic_cut_basis()
-    
 end
 
 function boson_mb_basis(Sub_Basis, pn, HardCore)
