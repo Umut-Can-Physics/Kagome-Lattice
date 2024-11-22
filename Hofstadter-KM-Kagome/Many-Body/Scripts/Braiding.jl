@@ -137,11 +137,10 @@ end
     return  
 end =#
 
-function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub_Number_MB_Operator_List, Degeneracy)
+function get_phases(Psi_first, V1, V2, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub_Number_MB_Operator_List, Degeneracy)
 
     ψ_mat = Psi_first
     ψ_first = copy(ψ_mat)
-    V1 = V2 = V
 
     Converge = []
     ψ_op = []
@@ -157,7 +156,6 @@ function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub
         
         for step in STEP[2:end]
                 
-            #V0_step = [round(V1*(1-step),digits=2), round(V1*step, digits=2), round(V2*(1-step), digits=2), round(V2*step, digits=2)]
             V0_step = [V1*(1-step), V1*step, V2*(1-step), V2*step]
             push!(V0_step_list, V0_step)
 
@@ -166,7 +164,7 @@ function get_phases(Psi_first, V, V_rand, rec_path_1, rec_path_2, STEP, Hmb, Sub
            
             Himp = Imp_H(Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
            
-            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy+1) 
+            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy+1, info=false) 
             ψ_tilde = ψ_tilde[1:Degeneracy]
             push!(ψ_op, ψ_tilde)
             push!(band_width, ϵ[Degeneracy]-ϵ[1])

@@ -86,6 +86,7 @@ function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
         H_Int_Sub = Hubbard_Int_fixed_prtc_sub(H_Int, P, Pt, Sub_Basis, basis_mb_sub)
         H_TotalSub = H_MB_sub + H_Int_Sub 
         H_TotalSub = (H_TotalSub'+H_TotalSub)/2  
+        
     elseif HardCore==false
         basis_cut_mb = get_Bosonic_MB_Basis(Sub_Basis, pn, false)
         H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)

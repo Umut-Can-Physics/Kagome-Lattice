@@ -33,6 +33,7 @@ function ParameterInfo(NPin, pn, Nx, Ny, p, q)
     NPhi = NPhi0-NPin
     N_d = Int(NPhi - pn/nu0)
     nu = pn//NPhi0
+    nu_eff = pn//NPhi
     Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
     return println("\n Lattice: ",Nx,"x",Ny,
         "\nThe Number of Flux per Unit-Cell (ϕ) = ",p//q,
@@ -40,7 +41,7 @@ function ParameterInfo(NPin, pn, Nx, Ny, p, q)
         ")\nThe Number of Flux Quanta = ", NPhi,
         " (Delocalised Number = ", N_d,
         ")\nThe Total Number of Particle = ",pn,
-        "\nThe Number of State of Ground Degeneracy = ",Degeneracy), Degeneracy, nu
+        "\nThe Number of State of Ground Degeneracy = ",Degeneracy), Degeneracy, nu_eff
 end
 
 function Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index)

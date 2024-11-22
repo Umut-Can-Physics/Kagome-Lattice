@@ -118,7 +118,7 @@ function get_mb_op(mb_basis, sp_op)
     
     N = sp_op.basis_l.shape[1]
     
-    @inbounds for i in 1:N
+    for i in 1:N
         for j in 1:N
             mb_op += sp_op.data[i,j] * transition(mb_basis, i, j)
         end
@@ -126,6 +126,7 @@ function get_mb_op(mb_basis, sp_op)
     
     return mb_op
 end
+
 
 #! get_mb_op and get_mb_op2 have to be the same return !#
 function get_mb_op2(mb_basis, sp_op)
