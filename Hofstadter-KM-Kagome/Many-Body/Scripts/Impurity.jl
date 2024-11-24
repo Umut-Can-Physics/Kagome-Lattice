@@ -20,12 +20,13 @@ function ground_degeneracy(Nx, Ny, p, q, N_Pin, pn)
     NPhi = NPhi0-N_Pin
     nu0 = 1/2
     N_d = Int(NPhi - pn/nu0)
+    nu_eff = pn/NPhi
     #if length(pn) == 1
     #    Degeneracy = 1
     #else
     Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
     #end
-    return Degeneracy, pn, NPhi0, N_d
+    return Degeneracy, nu_eff
 end
 
 function ParameterInfo(NPin, pn, Nx, Ny, p, q)
@@ -35,13 +36,14 @@ function ParameterInfo(NPin, pn, Nx, Ny, p, q)
     nu = pn//NPhi0
     nu_eff = pn//NPhi
     Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
-    return println("\n Lattice: ",Nx,"x",Ny,
-        "\nThe Number of Flux per Unit-Cell (ϕ) = ",p//q,
-        "\nFilling Fraction (ν) = ",nu," (The Number of Quasiholes = ",(NPin+N_d),
-        ")\nThe Number of Flux Quanta = ", NPhi,
+    return println("\n Lattice Size: ",Nx,"x",Ny,
+        "\n The Number of Flux per Unit-Cell (ϕ) = ",p//q,
+        "\n Filling Fraction (ν) = ",nu," (The Number of Quasiholes = ",(NPin+N_d),
+        ")\n The Number of Flux Quanta = ", NPhi,
         " (Delocalised Number = ", N_d,
         ")\nThe Total Number of Particle = ",pn,
-        "\nThe Number of State of Ground Degeneracy = ",Degeneracy), Degeneracy, nu_eff
+        "\n The Effective Filling = ",nu_eff,
+        "\nThe Number of Ground State Degeneracy = ",Degeneracy)
 end
 
 function Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index)

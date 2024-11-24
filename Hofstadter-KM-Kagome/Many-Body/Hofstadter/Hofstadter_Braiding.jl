@@ -8,10 +8,10 @@ includet("Hofstadter_SP.jl")
 includet("../Scripts/Impurity.jl")
 includet("../Scripts/Braiding.jl")
 
-Nx = 9
-Ny = 9
+Nx = 6
+Ny = 6
 p = 1
-q = 9
+q = 6
 ϕ = p/q
 pn = 2
 U = 1
@@ -30,7 +30,7 @@ lat_plot
 matrix = Hofstadter_SP(Nx, Ny, p / q, 0)
 
 V0 = [V, V]
-Imp_Site = [37,77] # [top-left corner, bottom-right corner]
+Imp_Site = [13,34]
 Impurity_Data = Impurity(V0, Imp_Site)
 NPin = 2 # It just defines # of degeneracy 
 
@@ -39,20 +39,31 @@ e1, psi1 = eigen(Matrix((matrix+matrix')/2))
 title_sp = latexstring("KM Single Particle Spectrum \n \$ N_x=$(Nx), N_y=$(Ny), \\phi=$(p//q), N=$(pn), U=$(U), V=$(V) \$")
 sp_spectrum = scatter(e1, xlabel=L"n", ylabel=L"E", label=false, title=title_sp)
 
-ParamInfo, Degeneracy, nu_eff = ParameterInfo(NPin, pn, Nx, Ny, p, q)
+Degeneracy, nu_eff = ground_degeneracy(Nx, Ny, p, q, NPin, pn)
+ParameterInfo(NPin, pn, Nx, Ny, p, q)
 
 #error("STOP!")
 
 # HARD-CORE IMPURTIY HAMILTONIAN
 HardCore = true 
 println("\n Constructing MB Operator...")
+# NO PROJ
 HHubbard, basis_mb, basis_sp = H_Hubbard(N, pn, matrix, HardCore)
+#PROJ
+#= Cut_Off = NPhi0
+HHubbard, P, Pt, basis_cut_mb = H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore) =#
 println("\n End of the MB Operator")
-num_list = get_num_list(N)
+# NO PROJ
+#num_list = get_num_list(N)
 #Number_MB_Operator_List = get_num_mb_op(N, basis_sp, num_list, basis_mb)
 Number_MB_Operator_List = [number(basis_mb, site) for site in 1:N]
+# PROJ
+#= num_sub_list = get_num_sub_list(N_Site, P, Pt)
+basis_cut_sp = NLevelBasis(Cut_Off)
+Sub_Number_MB_Operator_List = get_num_mb_op(N_Site, basis_cut_sp, num_sub_list, basis_cut_mb);
+ =#
 
-Himpurity = Imp_H(Number_MB_Operator_List, Impurity_Data, Vrand)
+Himpurity = Imp_H(Sub_Number_MB_Operator_List, Impurity_Data, Vrand)
 
 HTotal = HHubbard + Himpurity
 
