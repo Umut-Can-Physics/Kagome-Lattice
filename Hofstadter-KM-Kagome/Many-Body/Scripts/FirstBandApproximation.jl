@@ -112,7 +112,31 @@ Compute the many-body operator for boson particles from single-particle operator
 - `mb_basis`: Many-body basis.
 - `sp_op::Operator`: Single-particle operator.
 """
+
 function get_mb_op(mb_basis, sp_op)
+    # Initialize thread-local SparseOperators
+    thread_results = [SparseOperator(mb_basis) for _ in 1:nthreads()]
+    
+    N = sp_op.basis_l.shape[1]
+
+    @threads for i in 1:N
+        thread_id = threadid()  # Identify thread
+        for j in 1:N
+            local_mb = deepcopy(mb_basis)  # Ensure a thread-local copy
+            thread_results[thread_id] += sp_op.data[i, j] * transition(mb_basis, i, j)
+        end
+    end
+    
+    # Combine thread-local results
+    combined_result = SparseOperator(mb_basis)
+    for result in thread_results
+        combined_result += result
+    end
+    
+    return combined_result
+end
+
+#= function get_mb_op(mb_basis, sp_op)
     
     mb_op = SparseOperator(mb_basis)
     
@@ -126,7 +150,7 @@ function get_mb_op(mb_basis, sp_op)
     
     return mb_op
 end
-
+ =#
 
 #! get_mb_op and get_mb_op2 have to be the same return !#
 function get_mb_op2(mb_basis, sp_op)
