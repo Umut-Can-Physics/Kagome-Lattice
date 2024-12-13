@@ -41,14 +41,6 @@ function boson_mb_basis(Sub_Basis, pn, HardCore)
     return sub_mb_basis
 end
 
-#= function H_TotalSub(P, Pt, basis_cut_mb, cut_off, U, H1_MB)
-    H_Kin = SparseOperator(basis_cut_mb)
-    H_Kin.data = H1_MB.data
-    H_Int = Hubbard_Interaction_op(P, Pt, basis_cut_mb, cut_off, U)
-    H_Total = H_Kin + H_Int
-    return dense((H_Total'+H_Total)/2)
-end =#
-
 # find energies of specific particle number 
 function fixed_pn_sector(pn, E, V, b)
     PN = []
@@ -67,7 +59,10 @@ function fixed_pn_sector(pn, E, V, b)
     return PN, ϵ_fixed, λ_fixed
 end 
 
-function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
+"""
+Get total Hamiltonian (H_kin + H_int) in sub-space (projected space)
+"""
+function H_Hubbard_Projection(N, pn, U, matrix, Cut_Off, HardCore)
 
     basis_sp = NLevelBasis(N)
     H = Sp_Op(basis_sp, matrix)
@@ -82,7 +77,7 @@ function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
 
         H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
         basis_mb_sub = boson_mb_basis(Sub_Basis, pn, true)
-        H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp)
+        H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp, U)
         H_Int_Sub = Hubbard_Int_fixed_prtc_sub(H_Int, P, Pt, Sub_Basis, basis_mb_sub)
         H_TotalSub = H_MB_sub + H_Int_Sub 
         H_TotalSub = (H_TotalSub'+H_TotalSub)/2  
@@ -91,7 +86,7 @@ function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
         basis_cut_mb = get_Bosonic_MB_Basis(Sub_Basis, pn, false)
         H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
         basis_mb_sub = boson_mb_basis(Sub_Basis, pn, false)
-        H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp)
+        H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp, U)
         H_Int_Sub = Hubbard_Int_fixed_prtc_sub(H_Int, P, Pt, Sub_Basis, basis_mb_sub)
         H_TotalSub = H_MB_sub + H_Int_Sub 
         H_TotalSub = (H_TotalSub'+H_TotalSub)/2  
@@ -100,14 +95,16 @@ function H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore)
     return H_TotalSub, P, Pt, basis_mb_sub, Sub_Basis
 end
 
-function H_Hubbard(N, pn, matrix, HardCore)
+"""
+U is necessary for finite-interaction potential (Hard-Core==false)
+"""
+function H_Hubbard(N, U, pn, matrix, HardCore)
     basis_sp = NLevelBasis(N)
     H = Sp_Op(basis_sp, matrix)
 
     if HardCore==true
         basis_mb = get_Bosonic_MB_Basis(basis_sp, pn, true)
         H_MB = get_mb_op(basis_mb, H)
-        #H_Int = Hubbard_Interaction_Full(N, basis_sp, basis_mb, U)
         H_Total_full = H_MB 
         H_Total_full = (H_Total_full'+H_Total_full)/2
     elseif HardCore==false

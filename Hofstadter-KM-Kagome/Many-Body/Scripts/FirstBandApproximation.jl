@@ -113,7 +113,7 @@ Compute the many-body operator for boson particles from single-particle operator
 - `sp_op::Operator`: Single-particle operator.
 """
 
-function get_mb_op(mb_basis, sp_op)
+#= function get_mb_op(mb_basis, sp_op)
     # Initialize thread-local SparseOperators
     thread_results = [SparseOperator(mb_basis) for _ in 1:nthreads()]
     
@@ -134,9 +134,9 @@ function get_mb_op(mb_basis, sp_op)
     end
     
     return combined_result
-end
+end =#
 
-#= function get_mb_op(mb_basis, sp_op)
+function get_mb_op(mb_basis, sp_op)
     
     mb_op = SparseOperator(mb_basis)
     
@@ -150,7 +150,7 @@ end
     
     return mb_op
 end
- =#
+
 
 #! get_mb_op and get_mb_op2 have to be the same return !#
 function get_mb_op2(mb_basis, sp_op)
@@ -215,7 +215,7 @@ function Hubbard_Interaction_Full(N, sp_basis, mb_basis, U)
     return Vint_mb
 end
 
-function Hubbard_Interaction_fixed_prtcl(sp_basis)
+function Hubbard_Interaction_fixed_prtcl(sp_basis, U)
 
     basis2 = sp_basis ⊗ sp_basis
     
@@ -238,6 +238,7 @@ function Hubbard_Int_fixed_prtc_sub(Vint_mb, P, Pt, basis_sub, basis_mb_sub)
     basis_sub_2 = basis_sub ⊗ basis_sub # two body sub basis
     V2_sub_op = Operator(basis_sub_2, V2_sub)
     V2_Sub_Op = manybodyoperator(basis_mb_sub, V2_sub_op)
+    #V2_Sub_Op = get_mb_op(basis_mb_sub, V2_sub_op) # optimized!
 
     return V2_Sub_Op
 end
@@ -249,91 +250,3 @@ function get_num_mb_op(N, cut_sp_basis, num_sub_list, cut_mb_basis)
     
     return number_mb_list
 end
-
-#= # find energies of specific particle number 
-function get_filtered_energies(pn, E, V, basis)
-    PN_Energies = Array{Float64}(undef, length(E), 2)
-    for i in 1:length(E)
-        PN_Energies[i] = round(expect(number(basis), V[i])) 
-        PN_Energies[i,2] = E[i] 
-    end
-    
-    # filter
-    df = DataFrame(PN_Energies, :auto)
-    df = filter(row -> (row.x1 == pn),  df)
-    
-    return Matrix(df)[:,2]
-end
-
-#   Allta ki fonksiyonun çalışması için, dizide ki filtre edilmiş parçacık
-#   sayısı her zaman en büyük değer de olmalıdır. Örneğin, PN=[0,1,2,3,4] iken
-#   filtre edilen parçacık sayısı pn=4 olmalıdır!
-
-# Eigenstates of filtered particles
-function Restricted_Hubbard_States(states, filtered_energies)
-    number_of_states = length(filtered_energies)
-    return states[1:number_of_states];
-end =#
-
-#= function Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index)
-    Expectation_List = []
-    for site in 1:N_Site
-        push!(Expectation_List, expect(Sub_Number_MB_Operator_List[site], Fil_States[index]))
-    end
-    return real(Expectation_List)
-end =#
-
-#= function Get_Avg_Density(Nx, Ny, Degeneracy, N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States)
-    Avg_Density = spzeros(Nx,Ny)
-    for index in 1:Degeneracy
-        Avg_Density += reshape(Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index), Nx, Ny)
-    end    
-    return Avg_Density / Degeneracy
-end =#
-
-#= function Get_Avg_Density_List(Nx, Ny, Degeneracy, N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States)
-    Avg_Density = zeros(N_Site)
-    for index in 1:Degeneracy
-        Avg_Density += Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index)
-    end    
-    return Avg_Density / Degeneracy
-end =#
-
-#= function Interp(data, factor)
-    IC = CubicSplineInterpolation((axes(data,1), axes(data,2)), data)
-    finerx = LinRange(firstindex(data,1), lastindex(data,1), size(data,1) * factor)
-    finery = LinRange(firstindex(data,2), lastindex(data,2), size(data,2) * factor)
-    nx = length(finerx)
-    ny = length(finery)
-    data_interp = Array{Float64}(undef,nx,ny)
-    for i ∈ 1:nx, j ∈ 1:ny
-        data_interp[i,j] = IC(finerx[i],finery[j])
-    end
-    return finery, finerx, data_interp
-end
-
-# Find x and y coordinates from given site index
-
-function exp_list0(Nx, Ny, a1_vec, a2_vec, Basis, site_indx, avg_density)
-    
-    x_co = OffsetArray(get_sites(Nx, Ny, a1_vec, a2_vec, Basis)[4], 1:N)
-    y_co = OffsetArray(get_sites(Nx, Ny, a1_vec, a2_vec, Basis)[5], 1:N)
-    
-    x = hcat(x_co, y_co)[site_indx, 1]
-    y = hcat(x_co, y_co)[site_indx, 2] 
-    
-    #!!! 
-    # Burada beklenen değerlerin sıralamasının site bazında olduğunu varsaydım!!!!
-    #!!!
-    exp_val = real(avg_density)[site_indx] 
-    
-    return x, y, exp_val
-end
-
-# Find site_index from given x and y coordinates
-
-function exp_list1(Xx, Yy)
-    co_list = hcat(x_co, y_co)
-    site_indx = intersect(findall(x->x==Xx, co_list[:,1]), findall(x->x==Yy, co_list[:,2]))
-    return real(avg_density)[site_indx] 
-end =#

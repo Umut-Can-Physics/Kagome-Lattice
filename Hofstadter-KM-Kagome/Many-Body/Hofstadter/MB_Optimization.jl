@@ -5,12 +5,13 @@ using Base.Threads
 using SparseArrays
 
 # Define the system and operator
-N = 6*6
+N = 9*9
 b = NLevelBasis(N)
 op = randoperator(b)
-M = 2
+M = 3
 s = bosonstates(b, [M])
 mb = ManyBodyBasis(b, s)
+MB_OP = manybodyoperator(op, mb)
 
 function MB_2(N, mb, op)
     sparse_mb_op_2 = SparseOperator(mb) 
