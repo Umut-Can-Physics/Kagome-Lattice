@@ -50,7 +50,11 @@ println("\n V=", V)
 HardCore = true 
 println("\n Constructing MB Operator...")
 # NO PROJ
-HHubbard, basis_mb, basis_sp = H_Hubbard(N, pn, matrix, HardCore)
+# HHubbard, basis_mb, basis_sp = H_Hubbard(N, pn, matrix, HardCore)
+basis_sp = NLevelBasis(N)
+H1_op = Sp_Op(basis_sp, matrix)
+basis_mb = get_Bosonic_MB_Basis(basis_sp, pn, HardCore)
+HHubbard = get_mb_hopping(basis_mb, H1_op)
 #PROJ
 #= Cut_Off = NPhi0
 HHubbard, P, Pt, basis_cut_mb = H_Hubbard_Projection(N, pn, matrix, Cut_Off, HardCore) =#

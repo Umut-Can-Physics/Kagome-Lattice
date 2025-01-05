@@ -151,6 +151,30 @@ function get_mb_op(mb_basis, sp_op)
     return mb_op
 end
 
+function get_mb_hopping(mb_basis, sp_op)
+    
+    mb_op = SparseOperator(mb_basis)
+    
+    N = sp_op.basis_l.shape[1]
+
+    neighbor_list = [[1, 0], [-1,0], [0,1], [0,-1]]
+    
+    for j in 1:N
+        for neighbor in neighbor_list
+	    jx = mod(j-1,Nx) + 1
+	    jy = Int( (j-jx)/Nx ) + 1
+	    ix = mod( jx + neighbor[1] - 1, Nx ) + 1
+	    iy = mod( jy + neighbor[2] - 1, Ny ) + 1
+	    i = (iy-1)*Nx + ix 
+	    #println(j,jx,jy," ",i,ix,iy)
+            mb_op += sp_op.data[i,j] * transition(mb_basis, i, j)
+        end
+    end
+    
+    return mb_op
+end
+
+
 
 #! get_mb_op and get_mb_op2 have to be the same return !#
 function get_mb_op2(mb_basis, sp_op)
