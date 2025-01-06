@@ -36,14 +36,14 @@ function ParameterInfo(NPin, pn, Nx, Ny, p, q)
     nu = pn//NPhi0
     nu_eff = pn//NPhi
     Degeneracy = Int((factorial(N_d + pn - 1) / (factorial(N_d) * factorial(pn - 1))) * (NPhi / pn))
-    return println("\n Lattice Size: ",Nx,"x",Ny,
-        "\n The Number of Flux per Unit-Cell (ϕ) = ",p//q,
-        "\n Filling Fraction (ν) = ",nu," (The Number of Quasiholes = ",(NPin+N_d),
-        ")\n The Number of Flux Quanta = ", NPhi,
-        " (Delocalised Number = ", N_d,
-        ")\nThe Total Number of Particle = ",pn,
-        "\n The Effective Filling = ",nu_eff,
-        "\nThe Number of Ground State Degeneracy = ",Degeneracy)
+    result = "Lattice Size: $Nx x $Ny
+        \n The Number of Flux per Unit-Cell (ϕ) = $(p//q)
+        \n Filling Fraction (ν) = $(nu), (The Number of Quasiholes = $(NPin+N_d))
+        \n The Number of Flux Quanta = $(NPhi), (Delocalised Number = $(N_d))
+        \n The Total Number of Particle = $pn,
+        \n The Effective Filling = $nu_eff,
+        \n The Number of Ground State Degeneracy = $Degeneracy"
+    return result
 end
 
 function Get_Density_Profile(N_Site, Sub_Number_MB_Operator_List, Basis_Cut_MB, Fil_States, index)

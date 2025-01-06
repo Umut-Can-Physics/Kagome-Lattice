@@ -7,6 +7,28 @@ function plot_square_lattice(N, Nx, Ny)
     return co, p
 end
 
+function find_middle_site_x(Nx, co)
+    x_co = co[:,1]
+    if iseven(Nx)
+        idx = Int((Nx / 2))
+        return findall(x->x==0, x_co)[idx]
+    else
+        idx = Int((Nx / 2)+1/2)
+        return findall(x->x==0, x_co)[idx]
+    end        
+end
+
+function find_middle_site_y(Ny, co)
+    y_co = co[:,2]
+    if iseven(Ny)
+        idx = Int((Ny / 2))+1
+        return findall(x->x==Ny-1, y_co)[idx]
+    else
+        idx = Int((Ny / 2)+1/2)
+        return findall(x->x==Ny-1, y_co)[idx]
+    end        
+end
+
 function Sp_Op(sp_basis, matrix)
     H = get_sp_op(sp_basis, matrix)
     return dense((H'+H)/2)
