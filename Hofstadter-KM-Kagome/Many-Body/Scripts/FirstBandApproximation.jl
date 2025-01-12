@@ -142,7 +142,7 @@ function get_mb_op(mb_basis, sp_op)
     
     N = sp_op.basis_l.shape[1]
     
-    for i in 1:N
+    @showprogress for i in 1:N
         for j in 1:N
             mb_op += sp_op.data[i,j] * transition(mb_basis, i, j)
         end

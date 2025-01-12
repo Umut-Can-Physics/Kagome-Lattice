@@ -1,0 +1,33 @@
+"BRAIDING RESULTS FOR PROJECTED SPACE 
+ Cut-off = 8"
+"Lattice Size: 8 x 8
+        
+ The Number of Flux per Unit-Cell (ϕ) = 1//8
+        
+ Filling Fraction (ν) = 3//8, (The Number of Quasiholes = 2)
+        
+ The Number of Flux Quanta = 6, (Delocalised Number = 0)
+        
+ The Total Number of Particle = 3,
+        
+ The Effective Filling = 1//2,
+        
+ The Number of Ground State Degeneracy = 2"
+"
+ U = 1"
+"
+ V = 1.0e-5"
+"
+ V_Rand = 1.0e-5"
+"
+ BerryE=ComplexF64[0.8572274354689657 - 0.5148966434924382im, 0.8572314113519003 + 0.5148949182408347im]"
+"
+ |BerryE|=[0.9999787145737048, 0.9999812345432322]"
+"
+ Phases=[-0.17217377376370022, 0.17217265132568796]"
+"
+ Average Phase (angle)=0.999999438780994"
+"
+ nu_eff=0.5"
+"
+ 2*nu_eff=1.0"

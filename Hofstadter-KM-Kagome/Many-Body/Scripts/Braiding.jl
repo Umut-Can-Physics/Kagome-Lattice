@@ -164,7 +164,7 @@ function get_phases(Psi_first, V1, V2, V_rand, rec_path_1, rec_path_2, STEP, Hmb
            
             Himp = Imp_H(Sub_Number_MB_Operator_List, Impurity_Data_step[1], V_rand)
            
-            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy+1, info=false) 
+            ϵ, ψ_tilde = eigenstates(Hmb+Himp, Degeneracy+1) 
             ψ_tilde = ψ_tilde[1:Degeneracy]
             push!(ψ_op, ψ_tilde)
             push!(band_width, ϵ[Degeneracy]-ϵ[1])

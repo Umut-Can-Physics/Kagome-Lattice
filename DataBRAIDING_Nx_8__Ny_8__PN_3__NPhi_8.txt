@@ -1,0 +1,27 @@
+"Lattice Size: 8 x 8
+        
+ The Number of Flux per Unit-Cell (ϕ) = 1//8
+        
+ Filling Fraction (ν) = 3//8, (The Number of Quasiholes = 2)
+        
+ The Number of Flux Quanta = 6, (Delocalised Number = 0)
+        
+ The Total Number of Particle = 3,
+        
+ The Effective Filling = 1//2,
+        
+ The Number of Ground State Degeneracy = 2"
+"
+ BerryE=ComplexF64[0.25027239696715897 + 0.893644740111504im, 0.38764857078132353 - 0.8663161234181067im]"
+"
+ |BerryE|=[0.9280286602323469, 0.9490916921578121]"
+"
+ Phases=[0.41308149860509563, -0.3660723398649758]"
+"
+ Average Phase (angle)=1.02350457937006"
+"
+ Berry Phase=1.02350457937006"
+"
+ nu_eff=0.5"
+"
+ 2*nu_eff=1.0"
