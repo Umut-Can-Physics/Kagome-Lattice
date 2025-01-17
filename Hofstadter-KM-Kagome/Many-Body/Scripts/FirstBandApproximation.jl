@@ -1,5 +1,6 @@
 # using QuantumOptics
 using Einsum 
+using ProgressMeter
 
 """
 Convert Sp Matrix to Sp Operator
@@ -151,6 +152,39 @@ function get_mb_op(mb_basis, sp_op)
     return mb_op
 end
 
+function get_mb_op_optimized(mb_basis, sp_op)
+
+    mb_op = SparseOperator(mb_basis)
+    N = size(sp_op.data, 1) # More robust way to get dimension
+
+    # Pre-allocate lists to build the sparse matrix components directly
+    I = Vector{Int}()
+    J = Vector{Int}()
+    V = Vector{ComplexF64}()
+
+    println("Building many-body operator...")
+    @showprogress for j in 1:N
+        for i in 1:N
+            if !iszero(sp_op.data[i, j])
+                transition_op = transition(mb_basis, i, j)
+                rows, cols, vals = findnz(transition_op.data)
+                scale_factor = sp_op.data[i, j]
+                for k in eachindex(vals)
+                    push!(I, rows[k])
+                    push!(J, cols[k])
+                    push!(V, vals[k] * scale_factor)
+                end
+            end
+        end
+    end
+
+    # Construct the sparse matrix directly
+    sparse_data = sparse(I, J, V, only(mb_basis.shape), only(mb_basis.shape))
+    mb_op.data = sparse_data
+
+    return mb_op
+end
+
 function get_mb_hopping(mb_basis, sp_op)
     
     mb_op = SparseOperator(mb_basis)
@@ -254,14 +288,19 @@ end
 
 function Hubbard_Int_fixed_prtc_sub(Vint_mb, P, Pt, basis_sub, basis_mb_sub)
     V_int = Vint_mb.data
+    println("Create: Two Body Projection Operators")
     P2 = (P⊗P).data # two body projection operator
     P2t = (Pt⊗Pt).data
-    @einsum V2_sub[i2,j2] :=  P2[i2,k2] * V_int[k2,l2] * P2t[l2,j2]
+    println("Einsum")
+    #@einsum V2_sub[i2,j2] :=  P2[i2,k2] * V_int[k2,l2] * P2t[l2,j2]
+    V2_sub = P2 * V_int * P2t
+    println("Create: Two Body Sub-Basis")
     basis_sub_2 = basis_sub ⊗ basis_sub # two body sub basis
+    println("Convert: Operator")
     V2_sub_op = Operator(basis_sub_2, V2_sub)
+    println("Create: MB Operator")
     V2_Sub_Op = manybodyoperator(basis_mb_sub, V2_sub_op)
-    #V2_Sub_Op = get_mb_op(basis_mb_sub, V2_sub_op) # optimized!
-
+    println("End of Interaction Part")
     return V2_Sub_Op
 end
 

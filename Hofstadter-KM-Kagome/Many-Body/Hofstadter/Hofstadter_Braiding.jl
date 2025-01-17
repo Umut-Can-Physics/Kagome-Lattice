@@ -10,12 +10,12 @@ includet("Hofstadter_SP.jl")
 includet("../Scripts/Impurity.jl")
 includet("../Scripts/Braiding.jl")
 
-Nx = 8;
-Ny = 8;
+Nx = 10;
+Ny = 10;
 p = 1;
-q = 8;
+q = 10;
 ϕ = p/q;
-pn = 3;
+pn = 4;
 U = 1;
 V = 0.5;
 Vrand = 1e-5;
@@ -23,7 +23,6 @@ Vrand = 1e-5;
 N_Site = Nx*Ny;
 N = N_Site;
 NPhi0 = Int(Nx*Ny*(p/q));
-Cut_Off = NPhi0;
 
 co, lat_plot = plot_square_lattice(N_Site, Nx, Ny);
 

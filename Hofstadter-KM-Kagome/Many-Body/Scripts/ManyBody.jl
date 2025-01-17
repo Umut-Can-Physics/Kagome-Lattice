@@ -97,8 +97,8 @@ function H_Hubbard_Projection(N, pn, U, matrix, Cut_Off, HardCore)
 
         # type of are different but the marix are the same in contect of H_TotalSub: Sub_Basis = basis_cut_sp 
 
-        H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
-        #H_MB_sub = get_mb_hopping(basis_cut_mb, H_sp_Sub)
+        # H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
+        H_MB_sub = get_mb_op_optimized(basis_cut_mb, H_sp_Sub)
         basis_mb_sub = boson_mb_basis(Sub_Basis, pn, true)
         H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp, U)
         H_Int_Sub = Hubbard_Int_fixed_prtc_sub(H_Int, P, Pt, Sub_Basis, basis_mb_sub)
@@ -106,14 +106,20 @@ function H_Hubbard_Projection(N, pn, U, matrix, Cut_Off, HardCore)
         H_TotalSub = (H_TotalSub'+H_TotalSub)/2  
     
     elseif HardCore==false
+        println("Construct: MB Basis")
         basis_cut_mb = get_Bosonic_MB_Basis(Sub_Basis, pn, false)
-        H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
-        #H_MB_sub = get_mb_hopping(basis_cut_mb, H_sp_Sub)
+        println("Construct: MB Operator")
+        # H_MB_sub = get_mb_op(basis_cut_mb, H_sp_Sub)
+        H_MB_sub = get_mb_op_optimized(basis_cut_mb, H_sp_Sub)
+        println("Create: Sub MB Basis")
         basis_mb_sub = boson_mb_basis(Sub_Basis, pn, false)
+        println("Create: Interaction Term")
         H_Int = Hubbard_Interaction_fixed_prtcl(basis_sp, U)
+        println("Convert: Sub Interaction Term")
         H_Int_Sub = Hubbard_Int_fixed_prtc_sub(H_Int, P, Pt, Sub_Basis, basis_mb_sub)
         H_TotalSub = H_MB_sub + H_Int_Sub 
-        H_TotalSub = (H_TotalSub'+H_TotalSub)/2  
+        H_TotalSub = (H_TotalSub'+H_TotalSub)/2 
+        println("END!") 
     end
 
     return H_TotalSub, P, Pt, basis_mb_sub, Sub_Basis
