@@ -52,6 +52,19 @@ function get_Bosonic_MB_Basis(sp_basis, pn, HardCore)
     return N_Basis_MB
 end
 
+#= function MBBasis(pn, Nx, Ny, HardCore)
+    N = Nx*Ny
+    sp_basis = NLevelBasis(N)
+    if HardCore==false
+        N_States = bosonstates(sp_basis, pn)
+        N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
+    elseif HardCore==true
+        N_States = fermionstates(sp_basis, pn)
+        N_Basis_MB = ManyBodyBasis(sp_basis, N_States)
+    end
+    return N_Basis_MB
+end =#
+
 function boson_mb_basis(Sub_Basis, pn, HardCore)
     if HardCore==false
         sub_boson_states = bosonstates(Sub_Basis, pn)
@@ -129,21 +142,40 @@ end
 U is necessary for finite-interaction potential (Hard-Core==false)
 """
 function H_Hubbard(N, U, pn, matrix, HardCore)
+
     basis_sp = NLevelBasis(N)
     H = Sp_Op(basis_sp, matrix)
 
     if HardCore==true
         basis_mb = get_Bosonic_MB_Basis(basis_sp, pn, true)
-        H_MB = get_mb_op(basis_mb, H)
+        # H_MB = get_mb_op(basis_mb, H)
+        # H_MB = get_mb_hopping(basis_mb, H)
+        H_MB = get_mb_op_optimized(basis_mb, H)
         H_Total_full = H_MB 
         H_Total_full = (H_Total_full'+H_Total_full)/2
+        
     elseif HardCore==false
         basis_mb = get_Bosonic_MB_Basis(basis_sp, pn, false)
-        H_MB = get_mb_op(basis_mb, H)
+        # H_MB = get_mb_op(basis_mb, H)
+        # H_MB = get_mb_hopping(basis_mb, H)
+        H_MB = get_mb_op_optimized(basis_mb, H)
         H_Int = Hubbard_Interaction_Full(N, basis_sp, basis_mb, U)
         H_Total_full = H_MB + H_Int
         H_Total_full = (H_Total_full'+H_Total_full)/2
     end
 
     return H_Total_full, basis_mb, basis_sp
+end
+
+#- 2025 -#
+
+function SolveModel(pn, U, Nx, Ny, p, q, N, HardCore, method, Nev)
+    matrix = Hofstadter_SP(Nx, Ny, p / q, 0);
+    H_full_hard_core, _ = H_Hubbard(N, U, pn, matrix, HardCore);
+    E_full_hard_core, psi_full_hard_core = eigenstates(dense(H_full_hard_core), Nev); 
+    return E_full_hard_core, psi_full_hard_core
+end
+
+function Overlap(ψ1, ψ2)
+    return abs.(ψ1'*ψ2)^2
 end

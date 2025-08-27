@@ -1,0 +1,32 @@
+BRAIDING OF ABELIAN ANYONS WITH A VANISHING AHORONOV-BOHM PHASE 
+Hard-Core=FALSE"Lattice Size: 6 x 6
+        
+ The Number of Flux per Unit-Cell (ϕ) = 1//6
+        
+ Filling Fraction (ν) = 1//3, (The Number of Quasiholes = 2)
+        
+ The Number of Flux Quanta = 4, (Delocalised Number = 0)
+        
+ The Total Number of Particle = 2,
+        
+ The Effective Filling = 1//2,
+        
+ The Number of Ground State Degeneracy = 2"
+"
+ U = 1"
+"
+ V = 1.0e-5"
+"
+ V_Rand = 1.0e-5"
+"
+ BerryE=ComplexF64[0.8576142481820695 - 0.5141294141180823im, 0.8576684014728729 + 0.514168106910291im]"
+"
+ |BerryE|=[0.9999156230134115, 0.9999819643617307]"
+"
+ Phases=[-0.17190099833359532, 0.17190269882055217]"
+"
+ Average Phase (angle)=1.0000008502434785"
+"
+ nu_eff=0.5"
+"
+ 2*nu_eff=1.0"

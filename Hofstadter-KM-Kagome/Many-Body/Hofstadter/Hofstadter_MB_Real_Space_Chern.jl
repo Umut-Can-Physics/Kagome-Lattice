@@ -22,12 +22,12 @@ includet("Hofstadter_SP.jl")
 includet("Hofstadter_SP(TwistedAngle).jl")
 
 # PARAMETERS
-Nx = 4
-Ny = 4
+Nx = 6
+Ny = 6
 p = 1
-q = 4
+q = 6
 ϕ = p/q
-pn = 2
+pn = 3
 N = Nx*Ny
 Vrand = 0
 V = 2
@@ -69,7 +69,7 @@ Sub_Number_MB_Operator_List = get_num_mb_op(N, basis_cut_sp, num_sub_list, basis
 Impurity_H = Imp_H(Sub_Number_MB_Operator_List, Impurity_Data, Vrand)
 Total_H = H_hubbard + Impurity_H
 Degeneracy, nu_eff = ground_degeneracy(Nx, Ny, p, q, NPin, pn)
-ϵ_imp, psi_imp = eigenstates(Total_H, Degeneracy+5)
+ϵ_imp, psi_imp = eigenstates(Total_H)
 scatter(real(ϵ_imp))
 
 # MB CHERN NUMBER FOR GS MANIFOLD SECTION
